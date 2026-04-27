@@ -1,0 +1,43 @@
+#!/bin/bash
+# chezmoi modify script for ~/.config/niri/config.kdl
+#
+# Idempotent: on every chezmoi apply, this script receives the current
+# config.kdl content on stdin and writes the new version to stdout. It
+# keeps the vanilla CachyOS content untouched and ensures a managed
+# include block is present at the end of the file.
+#
+# To add or remove a user include, edit the INCLUDES list below then
+# run `chezmoi apply`.
+
+set -euo pipefail
+
+INCLUDES=(
+    'include "./user_cfg/_my-keybinds.kdl"'
+    'include "./user_cfg/_my-display.kdl"'
+    'include "./user_cfg/_my-input.kdl"'
+    'include "./user_cfg/_my-layout.kdl"'
+    'include "./user_cfg/_my-rules.kdl"'
+    'include "./noctalia.kdl"'
+)
+
+BEGIN_MARKER="// === BEGIN chezmoi-managed user includes ==="
+END_MARKER="// === END chezmoi-managed user includes ==="
+
+# Read stdin, strip any existing managed block
+content=$(awk -v begin="$BEGIN_MARKER" -v end="$END_MARKER" '
+    $0 == begin { skip = 1; next }
+    $0 == end   { skip = 0; next }
+    !skip
+' )
+
+# Emit cleaned content
+printf '%s' "$content"
+# Ensure trailing newline if missing
+[ -n "$content" ] && [ "${content: -1}" != $'\n' ] && printf '\n'
+
+# Emit the managed block
+printf '\n%s\n' "$BEGIN_MARKER"
+for inc in "${INCLUDES[@]}"; do
+    printf '%s\n' "$inc"
+done
+printf '%s\n' "$END_MARKER"

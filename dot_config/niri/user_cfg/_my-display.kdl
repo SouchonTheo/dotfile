@@ -1,0 +1,19 @@
+// ═════════════════════════════════════════════════════════════════
+//   MY DISPLAY — per-machine output{} overrides
+// ═════════════════════════════════════════════════════════════════
+//
+// Niri allows multiple output "X"{} blocks, one per monitor.
+// Uncomment the relevant one. Eventually: convert to a chezmoi
+// .tmpl to enable the right block based on hostname.
+
+// Framework 13 AMD (HiDPI)
+// output "eDP-1" {
+//     mode "2880x1920@120.000"
+//     scale 1.75
+// }
+
+// Personal desktop (adjust as needed)
+// output "DP-1" {
+//     mode "2560x1440@359.979"
+//     scale 1
+// }

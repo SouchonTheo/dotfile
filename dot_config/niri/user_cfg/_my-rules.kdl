@@ -1,0 +1,13 @@
+// ═════════════════════════════════════════════════════════════════
+//   MY RULES — additional window-rules
+// ═════════════════════════════════════════════════════════════════
+//
+// Niri allows multiple window-rule{} blocks (each block = one rule),
+// they ADD to those defined in cfg/rules.kdl. No need to redefine
+// the vanilla rules.
+
+// Inactive windows semi-transparent to highlight focus
+window-rule {
+    match is-active=false
+    opacity 0.85
+}

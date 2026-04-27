@@ -1,0 +1,46 @@
+// ═════════════════════════════════════════════════════════════════
+//   MY INPUT — full override of the vanilla input{} block
+// ═════════════════════════════════════════════════════════════════
+//
+// Niri uses the LAST input{} block defined, so this file fully
+// replaces cfg/input.kdl. Must be included AFTER it.
+//
+// Differences from vanilla:
+//   - touchpad: added click-method "clickfinger"
+//   - touchpad: natural-scroll disabled (was enabled)
+//   - added disable-power-key-handling so niri lets the power key
+//     reach our XF86PowerOff binding (combined with HandlePowerKey=ignore
+//     in /etc/systemd/logind.conf.d/00-power-key.conf on the system side)
+//   - added a gestures{} block with hot-corners off
+
+input {
+    disable-power-key-handling
+
+    keyboard {
+        xkb {
+            // OS default layout. To override:
+            //layout "us"
+        }
+        numlock
+    }
+
+    touchpad {
+        tap
+        click-method "clickfinger"
+        // natural-scroll intentionally disabled
+    }
+
+    mouse {
+        // accel-profile "flat"
+        // accel-speed 0.0
+    }
+
+    focus-follows-mouse
+    workspace-auto-back-and-forth
+}
+
+gestures {
+    hot-corners {
+        off
+    }
+}

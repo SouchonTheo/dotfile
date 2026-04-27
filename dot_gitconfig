@@ -1,0 +1,9 @@
+[user]
+	email = souchontheo24@gmail.com
+	name = Theo Souchon
+
+[core]
+  excludesfile = ~/.gitignore
+
+[alias]
+  fp = fetch --prune

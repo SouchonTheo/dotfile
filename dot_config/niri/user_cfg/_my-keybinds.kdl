@@ -1,0 +1,86 @@
+// ═════════════════════════════════════════════════════════════════
+//   MY CUSTOM KEYBINDS — overrides + additions on top of cfg/keybinds.kdl
+// ═════════════════════════════════════════════════════════════════
+//
+// This file must be included AFTER cfg/keybinds.kdl in config.kdl
+// for the overrides to take effect (last declaration wins).
+//
+// Structure:
+//   1. Overrides    — same key, different action than vanilla
+//   2. Replacements — I changed the combo (e.g. Mod+ALT+L → Mod+Shift+L)
+//   3. Additions    — new bindings, no vanilla equivalent
+//
+// Note: niri has no unbind syntax. The original vanilla combos
+// (Mod+ALT+L, Mod+CTRL+Return, Mod+Shift+ESCAPE, Mod+CTRL+1..9,
+// CTRL+Shift+1/2/3) remain active in parallel. To disable them,
+// edit cfg/keybinds.kdl directly (but you lose the pristine state).
+
+binds {
+
+    // ─────────────────────────────────────────────────────────────
+    // 1. OVERRIDES — same key, action changed
+    // ─────────────────────────────────────────────────────────────
+
+    // Terminal: alacritty → ghostty
+    Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
+
+    // Browser: firefox → brave
+    Mod+B                               hotkey-overlay-title="Open Browser: brave" { spawn "brave"; }
+
+    // Mod+F: vanilla = fullscreen-window → mine = maximize-column (subtle tiling difference)
+    Mod+F                               { maximize-column; }
+
+    // Mod+C: vanilla = center-column → mine = clipboard copy via wtype
+    // WARNING: I sacrificed center-column. Mod+CTRL+C still does center-visible-columns.
+    Mod+C                               hotkey-overlay-title="Copy (Ctrl+C)" { spawn-sh "wtype -M ctrl -k Insert -m ctrl"; }
+
+    // ─────────────────────────────────────────────────────────────
+    // 2. REPLACEMENTS — same action, key combo changed
+    // ─────────────────────────────────────────────────────────────
+
+    // Hotkey overlay: Mod+Shift+ESCAPE → Mod+Shift+K
+    Mod+Shift+K                         { show-hotkey-overlay; }
+
+    // App launcher: Mod+CTRL+Return → Mod+Space (more natural)
+    Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
+
+    // Lock screen: Mod+ALT+L → Mod+Shift+L
+    Mod+Shift+L                         hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
+
+    // Move-column-to-workspace: Mod+CTRL+1..9 → Mod+Shift+1..9
+    Mod+Shift+1                         { move-column-to-workspace 1; }
+    Mod+Shift+2                         { move-column-to-workspace 2; }
+    Mod+Shift+3                         { move-column-to-workspace 3; }
+    Mod+Shift+4                         { move-column-to-workspace 4; }
+    Mod+Shift+5                         { move-column-to-workspace 5; }
+    Mod+Shift+6                         { move-column-to-workspace 6; }
+    Mod+Shift+7                         { move-column-to-workspace 7; }
+    Mod+Shift+8                         { move-column-to-workspace 8; }
+    Mod+Shift+9                         { move-column-to-workspace 9; }
+
+    // Screenshots: CTRL+Shift+1/2/3 → Print / Shift+Print / CTRL+Print
+    Print                               { screenshot; }
+    Shift+Print                         { screenshot-screen; }
+    CTRL+Print                          { screenshot-window; }
+
+    // ─────────────────────────────────────────────────────────────
+    // 3. ADDITIONS — new bindings
+    // ─────────────────────────────────────────────────────────────
+
+    // Custom apps
+    Mod+A                               hotkey-overlay-title="Open AI: claude" { spawn "gtk-launch" "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default"; }
+    Mod+Shift+E                         hotkey-overlay-title="Spawn Emoji Picker: noctalia emoji" { spawn-sh "qs -c noctalia-shell ipc call plugin:kaomoji toggle"; }
+
+    // Custom clipboard (Mod+C is in the overrides section above)
+    Mod+V                               hotkey-overlay-title="Paste (Shift+Insert)" { spawn-sh "wtype -M shift -k Insert -m shift"; }
+    Mod+X                               hotkey-overlay-title="Cut (Ctrl+X)" { spawn-sh "wtype -M ctrl -k x -m ctrl"; }
+    Mod+Shift+V                         hotkey-overlay-title="Clipboard manager: noctalia" { spawn-sh "qs -c noctalia-shell ipc call launcher clipboard"; }
+
+    // Column width / window height presets (missing from vanilla)
+    Mod+R                               { switch-preset-column-width; }
+    Mod+Shift+R                         { switch-preset-window-height; }
+    Mod+Ctrl+R                          { reset-window-height; }
+
+    // Power button → session menu (requires HandlePowerKey=ignore in logind)
+    XF86PowerOff                        allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
+}
