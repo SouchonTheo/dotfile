@@ -38,14 +38,8 @@ binds {
     // 2. REPLACEMENTS — same action, key combo changed
     // ─────────────────────────────────────────────────────────────
 
-    // Hotkey overlay: Mod+Shift+ESCAPE → Mod+Shift+K
-    Mod+Shift+K                         { show-hotkey-overlay; }
-
     // App launcher: Mod+CTRL+Return → Mod+Space (more natural)
     Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
-
-    // Lock screen: Mod+ALT+L → Mod+Shift+L
-    Mod+Shift+L                         hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
 
     // Move-column-to-workspace: Mod+CTRL+1..9 → Mod+Shift+1..9
     Mod+Shift+1                         { move-column-to-workspace 1; }
@@ -83,4 +77,15 @@ binds {
 
     // Power button → session menu (requires HandlePowerKey=ignore in logind)
     XF86PowerOff                        allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
+
+    // Vim-motion monitor focus (mirrors Mod+Shift+arrow in cfg/keybinds.kdl)
+    Mod+Shift+H                         { focus-monitor-left; }
+    Mod+Shift+L                         { focus-monitor-right; }
+    Mod+Shift+K                         { focus-monitor-up; }
+    Mod+Shift+J                         { focus-monitor-down; }
+
+    Mod+Shift+CTRL+H                    { move-column-to-monitor-left; }
+    Mod+Shift+CTRL+L                    { move-column-to-monitor-right; }
+    Mod+Shift+CTRL+K                    { move-column-to-monitor-up; }
+    Mod+Shift+CTRL+J                    { move-column-to-monitor-down; }
 }
