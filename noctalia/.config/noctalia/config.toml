@@ -1,0 +1,359 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Noctalia v5 – config migrée depuis settings.json (v4, settingsVersion 59)
+#  Date de migration : 2026-09-14
+#  Référence : https://docs.noctalia.dev/noctalia/configuration/
+#
+#  Rappels v5 :
+#   - Tous les *.toml de ce dossier sont fusionnés (ordre alphabétique).
+#   - Ce que tu changes dans l'interface Settings est écrit dans
+#     ~/.local/state/noctalia/settings.toml et GAGNE sur ce fichier.
+#   - `noctalia config validate` vérifie ce fichier.
+#   - L'ancienne config v4 est conservée dans ./v4-backup/
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Shell ────────────────────────────────────────────────────────────────────
+
+[shell]
+font_family        = "Maple Mono NF"                    # v4 ui.fontDefault / fontFixed
+avatar_path        = "/home/theo/Pictures/logo-512.png" # v4 general.avatarImage
+telemetry_enabled  = false                              # v4 general.telemetryEnabled
+polkit_agent       = true                               # remplace le plugin v4 "polkit-agent" (natif en v5)
+clipboard_enabled  = true                               # v4 appLauncher.enableClipboardHistory
+time_format        = "{:%H:%M}"
+date_format        = "%A, %x"
+niri_overview_type_to_launch_enabled = true         # taper dans l'overview niri ouvre le launcher
+clipboard_image_action_command = "noctalia msg annotate {path}"  # bouton "annoter" sur les images du presse-papier
+
+# Captures d'écran natives (bind niri : Print → screenshot-region, Shift+Print → screenshot-fullscreen)
+[shell.screenshot]
+save_to_file      = true
+directory         = ""                                  # vide = ~/Pictures
+copy_to_clipboard = true
+freeze_screen     = true
+annotate          = true                                # éditeur d'annotation avant copie/sauvegarde
+skip_annotate_on_copy_save = true                       # Ctrl+C / Ctrl+S dans la sélection = livraison directe
+
+[shell.animation]
+enabled = true                                          # v4 general.animationDisabled = false
+speed   = 1.0                                           # v4 general.animationSpeed
+
+[shell.shadow]
+direction = "down_right"                                # v4 general.shadowDirection = bottom_right
+
+[shell.panel]
+transparency_mode              = "solid"                # panneaux et cartes 100 % opaques
+control_center_placement       = "attached"             # v4 ui.panelsAttachedToBar = true
+launcher_placement             = "floating"
+launcher_position              = "center"               # v4 appLauncher.position = center
+clipboard_placement            = "floating"
+clipboard_position             = "center"
+open_near_click_control_center = true                   # v4 controlCenter.position = close_to_bar_button
+
+[shell.launcher]
+categories    = true                                    # v4 appLauncher.showCategories
+app_grid      = true                                    # v4 appLauncher.viewMode = grid
+sort_by_usage = true                                    # v4 appLauncher.sortByMostUsed
+pinned        = []                                      # v4 appLauncher.pinnedApps
+# v4 terminalCommand = "ghostty -e" : en v5 Noctalia utilise $TERMINAL (sans -e),
+# sinon détecte ghostty/kitty/alacritty… automatiquement.
+
+# Providers "dmenu" : une commande shell produit des lignes, tu les filtres derrière
+# un préfixe (/ssh, /repo), Entrée exécute `exec` avec {selection}.
+[shell.launcher.dmenu.entry.ssh]
+command = "awk '/^Host /{for(i=2;i<=NF;i++) if($i !~ /[*?]/) print $i}' ~/.ssh/config 2>/dev/null"
+exec    = "ghostty -e ssh {selection}"
+prefix  = "ssh"
+glyph   = "server"
+
+[shell.launcher.dmenu.entry.repo]
+command = "find ~/Code -mindepth 2 -maxdepth 3 -name .git -printf '%h\\n' 2>/dev/null | sed \"s|^$HOME/||\" | sort"
+exec    = "ghostty --working-directory=$HOME/{selection}"
+prefix  = "repo"
+glyph   = "git-branch"
+
+[shell.mpris]
+blacklist = []                                          # v4 audio.mprisBlacklist
+
+# Menu session : les 5 actions par défaut v5 (Lock, Log out, Lock & Suspend, Reboot, Shut down),
+# sans countdown, raccourcis 1-5.
+[shell.session]
+grid           = false                                  # v4 largeButtonsLayout = single-row
+show_shortcuts = true                                   # v4 showKeybinds
+
+# ── Fond d'écran ─────────────────────────────────────────────────────────────
+
+[wallpaper]
+enabled             = true
+directory           = "/home/theo/Pictures/Wallpapers"
+fill_mode           = "crop"
+fill_color          = "#000000"
+# v4 : fade, disc, stripes, wipe, pixelate, honeycomb — "pixelate" n'existe plus en v5
+transition          = ["fade", "disc", "stripes", "wipe", "honeycomb"]
+transition_duration = 1500
+edge_smoothness     = 0.05
+
+[wallpaper.automation]
+enabled          = false                                # v4 automationEnabled
+interval_seconds = 300                                  # v4 randomIntervalSec
+order            = "random"                             # v4 wallpaperChangeMode
+
+# v4 wallpaper.overviewEnabled = false → backdrop désactivé (défaut v5).
+# Ta layer-rule niri "noctalia-wallpaper → place-within-backdrop" reste valable.
+[backdrop]
+enabled = false
+
+# ── Thème ────────────────────────────────────────────────────────────────────
+
+[theme]
+mode    = "auto"                                        # jour/nuit selon lever/coucher du soleil ([location])
+source  = "builtin"                                     # v4 useWallpaperColors = false
+builtin = "Catppuccin"                                  # v4 predefinedScheme
+
+[theme.templates]
+enable_builtin_templates   = true
+# v4 templates.activeTemplates : niri, starship, ghostty, gtk, qt, alacritty, btop
+builtin_ids                = ["niri", "starship", "ghostty", "gtk3", "gtk4", "qt", "alacritty", "btop"]
+enable_community_templates = true
+# discord (vesktop) et yazi sont des templates "community" en v5
+community_ids              = ["discord", "yazi"]
+
+# ── Notifications ────────────────────────────────────────────────────────────
+
+[notification]
+enable_daemon             = true                        # v4 notifications.enabled
+position                  = "top_right"                 # v4 notifications.location
+layer                     = "overlay"                   # v4 notifications.overlayLayer = true
+background_opacity        = 1.0                         # v4 notifications.backgroundOpacity
+keep_dismissed_in_history = false                       # v4 notifications.clearDismissed = true
+filter_order              = ["discord", "slack"]
+
+# Discord : pas de toast, mais gardé dans l'historique du control center
+[notification.filter.discord]
+enabled      = true
+match        = "vesktop"
+show_toast   = false
+save_history = true
+play_sound   = false
+
+# Slack : même règle, désactivée par défaut (passe enabled = true si tu veux le silence)
+[notification.filter.slack]
+enabled      = false
+match        = "slack"
+show_toast   = false
+save_history = true
+play_sound   = false
+
+# ── OSD ──────────────────────────────────────────────────────────────────────
+
+[osd]
+position           = "top_right"                        # v4 osd.location
+background_opacity = 1.0                                # v4 osd.backgroundOpacity
+
+# ── Écran de verrouillage ────────────────────────────────────────────────────
+
+[lockscreen]
+enabled             = true
+lock_before_suspend = true                              # v4 general.lockOnSuspend
+
+# ── Inactivité (v4 idle : screenOff 600 s, lock 660 s, suspend 1800 s) ──────
+
+[idle]
+behavior_order          = ["screen-off", "lock", "suspend"]
+pre_action_fade_seconds = 5                             # v4 idle.fadeDuration
+
+[idle.behavior.screen-off]
+enabled = true
+timeout = 600
+action  = "screen_off"
+
+[idle.behavior.lock]
+enabled = true
+timeout = 660
+action  = "lock"
+
+[idle.behavior.suspend]
+enabled = true
+timeout = 1800
+action  = "suspend"                                     # verrouille d'abord (lockscreen.lock_before_suspend)
+
+# ── Night light ──────────────────────────────────────────────────────────────
+
+[nightlight]
+enabled           = true                                # planifié sur le même horaire solaire que le thème
+force             = false
+temperature_day   = 6500                                # v4 dayTemp
+temperature_night = 4000                                # v4 nightTemp
+
+# ── Localisation / Météo ─────────────────────────────────────────────────────
+
+[location]
+auto_locate = false                                     # v4 location.autoLocate
+address     = "Montpellier"                             # v4 location.name
+
+[weather]
+enabled = true                                          # v4 location.weatherEnabled
+unit    = "metric"                                      # v4 useFahrenheit = false
+effects = true                                          # v4 weatherShowEffects
+
+# ── Audio / Luminosité ───────────────────────────────────────────────────────
+
+[audio]
+enable_overdrive = false                                # v4 audio.volumeOverdrive
+enable_sounds    = false                                # v4 notifications.sounds.enabled + volumeFeedback
+
+[brightness]
+enable_ddcutil = false                                  # v4 brightness.enableDdcSupport
+# v4 enforceMinimum = true : en v5 c'est une valeur explicite, ex. minimum_brightness = 0.05
+
+# ── Control Center ───────────────────────────────────────────────────────────
+# v4 : Network, Bluetooth, WallpaperSelector, NoctaliaPerformance | Notifications, PowerProfile, KeepAwake, NightLight
+# La v5 affiche 6 raccourcis max et n'a plus de "NoctaliaPerformance".
+
+[[control_center.shortcuts]]
+type = "wifi"
+
+[[control_center.shortcuts]]
+type = "bluetooth"
+
+[[control_center.shortcuts]]
+type = "wallpaper"
+
+[[control_center.shortcuts]]
+type = "notification"
+
+[[control_center.shortcuts]]
+type = "power_profile"
+
+[[control_center.shortcuts]]
+type = "caffeine"                                       # v4 KeepAwake
+
+# 7e raccourci v4 (NightLight) : décommente et retire-en un autre si tu le veux.
+# [[control_center.shortcuts]]
+# type = "nightlight"
+
+# ── Barre ────────────────────────────────────────────────────────────────────
+
+[bar.main]
+position                 = "top"
+background_opacity       = 1.0                          # opaque (v4 était 0.93)
+radius                   = 12                           # v4 bar.frameRadius
+margin_edge              = 4                            # v4 bar.marginVertical
+margin_ends              = 4                            # v4 bar.marginHorizontal
+widget_spacing           = 6                            # v4 bar.widgetSpacing
+font_scale               = 1.0                          # v4 bar.fontScale
+shadow                   = true                         # v4 general.enableShadows
+auto_hide                = false                        # v4 bar.displayMode = always_visible
+show_on_workspace_switch = true
+reserve_space            = true                         # v4 bar.enableExclusionZoneInset
+capsule                  = true                         # v4 bar.showCapsule
+capsule_opacity          = 1.0                          # v4 bar.capsuleOpacity
+
+# v4 left / center / right → v5 start / center / end
+start  = ["launcher", "clock", "cpu", "cpu-temp", "ram", "active_window", "media"]
+center = ["workspaces"]
+end    = ["tray", "notifications", "battery", "volume", "brightness", "tailscale", "control-center", "keybind-cheatsheet"]
+
+# Zone vide de la barre : clic gauche = launcher, molette = volume (clic droit = control center par défaut)
+[bar.main.dead_zone.actions]
+left        = "panel-toggle launcher"
+scroll_up   = "volume-up"
+scroll_down = "volume-down"
+
+# ── Widgets ──────────────────────────────────────────────────────────────────
+
+[widget.launcher]
+glyph = "rocket"                                        # v4 Launcher.icon
+
+[widget.clock]
+format          = "{:%H:%M %a, %b %d}"                  # v4 "HH:mm ddd, MMM dd"
+vertical_format = "{:%H\n%M}\n{:%d\n%m}"                # v4 "HH mm - dd MM"
+tooltip_format  = "{:%H:%M %a, %b %d}"                  # v4 tooltipFormat
+
+# v4 SystemMonitor (compactMode, showCpuUsage, showCpuTemp, showMemoryUsage)
+# → un widget sysmon par statistique en v5
+[widget.cpu]
+type          = "sysmon"
+stat          = "cpu_usage"
+visualization = "none"
+
+[widget.cpu-temp]
+type          = "sysmon"
+stat          = "cpu_temp"
+visualization = "none"
+
+[widget.ram]
+type          = "sysmon"
+stat          = "ram_used"                              # v4 showMemoryAsPercent = false
+visualization = "none"
+
+[widget.active_window]
+max_length   = 145                                      # v4 ActiveWindow.maxWidth
+title_scroll = "on_hover"                               # v4 scrollingMode = hover
+display      = "icon_and_text"                          # v4 showIcon + showText
+
+[widget.media]
+max_length         = 145                                # v4 MediaMini.maxWidth
+artist_first       = true                               # v4 showArtistFirst
+title_scroll       = "on_hover"
+hide_when_no_media = false                              # v4 hideWhenIdle = false
+
+[widget.workspaces]
+style                     = "regular"
+show_labels               = true
+label_source              = "id"                        # v4 labelMode = index
+max_label_chars           = 2                           # v4 characterCount
+labels_only_when_occupied = true                        # v4 showLabelsOnlyWhenOccupied
+hide_when_empty           = false                       # v4 hideUnoccupied
+focused_color             = "primary"
+occupied_color            = "secondary"
+empty_color               = "secondary"
+# v4 pillSize = 0.6 : l'échelle v5 (pill_scale, défaut 1.0) n'est pas la même ; ajuste si besoin.
+
+[widget.tray]
+drawer       = true                                     # v4 Tray.drawerEnabled
+hide_passive = false                                    # v4 Tray.hidePassive
+
+[widget.notifications]
+hide_when_no_unread = false                             # v4 hideWhenZero / hideWhenZeroUnread
+
+[widget.battery]
+display_mode = "graphic"                                # v4 displayMode = graphic-clean
+show_label   = false                                    #   ("clean" = sans pourcentage)
+device       = "auto"                                   # v4 deviceNativePath = __default__
+
+[widget.volume]
+device     = "output"
+show_label = false                                      # v4 displayMode = onhover (le % reste dans le tooltip)
+
+[widget.volume.actions]
+middle = "exec pwvucontrol || pavucontrol"              # v4 Volume.middleClickCommand
+
+[widget.brightness]
+show_label = false                                      # v4 displayMode = onhover
+
+[widget.control-center]
+glyph = "noctalia"                                      # v4 ControlCenter.icon
+
+# Widgets fournis par des plugins (v4 plugin:tailscale / plugin:keybind-cheatsheet)
+[widget.tailscale]
+type = "davemhammer/tailscale:status"
+
+[widget.keybind-cheatsheet]
+type = "kenn/keybind-cheatsheet:keybinds"
+
+# ── Plugins ──────────────────────────────────────────────────────────────────
+# Sources "official" et "community" sont intégrées par défaut.
+# polkit-agent n'est plus un plugin : voir [shell].polkit_agent.
+
+[plugins]
+enabled     = ["davemhammer/tailscale", "kenn/keybind-cheatsheet"]
+auto_update = "none"                                    # v4 plugins.autoUpdate = false
+
+[plugin_settings."davemhammer/tailscale"]
+refresh_interval = 5                                    # v4 refreshInterval = 5000 ms
+
+[plugin_settings."kenn/keybind-cheatsheet"]
+compositor       = "niri"                               # v4 detectedCompositor (auto) → forcé niri
+niri_config      = "~/.config/niri/config.kdl"          # v4 niriConfigPath
+columns          = 3                                    # v4 columnCount
+show_undescribed = true                                 # v4 showUndescribedBinds

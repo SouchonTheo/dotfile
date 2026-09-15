@@ -17,7 +17,7 @@ end
 
 local o = vim.opt
 o.number = true
-o.relativenumber = false
+o.relativenumber = true -- current line keeps its absolute number (number = true), others count from it
 o.termguicolors = true
 o.signcolumn = "yes"
 o.expandtab = true

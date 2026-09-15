@@ -11,6 +11,7 @@ vim.pack.add({
   -- treesitter (main branch, new API)
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
   { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
+  { src = "https://github.com/nvim-treesitter/nvim-treesitter-context" }, -- sticky scope header
 
   -- mini.* (one repo each, lighter than the monorepo)
   { src = "https://github.com/echasnovski/mini.ai" },
@@ -38,6 +39,9 @@ vim.pack.add({
   { src = "https://github.com/echasnovski/mini.jump" },       -- enhanced f/F/t/T
   { src = "https://github.com/echasnovski/mini.trailspace" },
   { src = "https://github.com/echasnovski/mini.misc" },       -- restore cursor on file open
+  { src = "https://github.com/echasnovski/mini.sessions" },   -- project sessions (<leader>S)
+  { src = "https://github.com/echasnovski/mini.visits" },     -- frecency file history + labels (<leader>v)
+  { src = "https://github.com/echasnovski/mini.diff" },       -- git hunks: signs, overlay, apply/reset
 
   -- snippet collection (consumed by mini.snippets)
   { src = "https://github.com/rafamadriz/friendly-snippets" },
@@ -50,11 +54,10 @@ vim.pack.add({
   { src = "https://github.com/folke/flash.nvim" },          -- label-jump motion
   { src = "https://github.com/tris203/precognition.nvim" }, -- motion hints
 
-  -- completion + AI
+  -- completion. Copilot is not a plugin anymore: nvim 0.12 native
+  -- vim.lsp.inline_completion + copilot-language-server, configured in lsp.lua.
   { src = "https://github.com/Saghen/blink.lib" },
   { src = "https://github.com/Saghen/blink.cmp" },
-  { src = "https://github.com/fang2hou/blink-copilot" },
-  { src = "https://github.com/zbirenbaum/copilot.lua" },
 
   -- format (lint handled by the LSPs: rust-analyzer/clippy, etc.)
   { src = "https://github.com/stevearc/conform.nvim" },
@@ -69,6 +72,7 @@ vim.pack.add({
 
   -- rust
   { src = "https://github.com/mrcjkb/rustaceanvim" },
+  { src = "https://github.com/saecki/crates.nvim" },        -- Cargo.toml: versions, features, docs (in-process LSP)
 
   -- test
   { src = "https://github.com/nvim-lua/plenary.nvim" },

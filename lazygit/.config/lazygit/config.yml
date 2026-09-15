@@ -1,0 +1,8 @@
+# Everything else is lazygit's default. delta: pacman -S git-delta
+# Schema: docs/Custom_DiffRenderers.md (type + command; the old `pager` key is gone).
+git:
+  diffRenderers:
+    - type: stdinFilter
+      name: delta
+      colorArg: always
+      command: delta --dark --paging=never --line-numbers --hyperlinks

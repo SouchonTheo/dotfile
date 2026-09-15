@@ -83,11 +83,20 @@ map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 map("n", "]t", function() require("todo-comments").jump_next() end, { desc = "Next TODO" })
 map("n", "[t", function() require("todo-comments").jump_prev() end, { desc = "Prev TODO" })
 
-map("n", "]h", function() require("gitsigns").nav_hunk("next") end, { desc = "Next hunk" })
-map("n", "[h", function() require("gitsigns").nav_hunk("prev") end, { desc = "Prev hunk" })
-map("n", "<leader>gs", function() require("gitsigns").stage_hunk() end, { desc = "Stage hunk" })
-map("n", "<leader>gr", function() require("gitsigns").reset_hunk() end, { desc = "Reset hunk" })
-map("n", "<leader>gp", function() require("gitsigns").preview_hunk() end, { desc = "Preview hunk" })
+-- git hunks via mini.diff (gh / gH operators come from its setup)
+map("n", "]h", function() MiniDiff.goto_hunk("next") end,  { desc = "Next hunk" })
+map("n", "[h", function() MiniDiff.goto_hunk("prev") end,  { desc = "Prev hunk" })
+map("n", "]H", function() MiniDiff.goto_hunk("last") end,  { desc = "Last hunk" })
+map("n", "[H", function() MiniDiff.goto_hunk("first") end, { desc = "First hunk" })
+local function hunk_at_cursor(action)
+  local l = vim.fn.line(".")
+  MiniDiff.do_hunks(0, action, { line_start = l, line_end = l })
+end
+map("n", "<leader>gs", function() hunk_at_cursor("apply") end, { desc = "Stage hunk under cursor" })
+map("n", "<leader>gr", function() hunk_at_cursor("reset") end, { desc = "Reset hunk under cursor" })
+map("n", "<leader>gS", function() MiniDiff.do_hunks(0, "apply") end, { desc = "Stage all hunks in buffer" })
+map("n", "<leader>go", function() MiniDiff.toggle_overlay(0) end, { desc = "Toggle diff overlay" })
+map("n", "<leader>gp", function() MiniDiff.toggle_overlay(0) end, { desc = "Preview hunks (overlay)" })
 map("n", "<leader>gb", function() require("gitsigns").blame_line({ full = true }) end, { desc = "Blame line" })
 map("n", "<leader>gg", "<cmd>LazyGit<cr>", { desc = "Lazygit" })
 
@@ -152,6 +161,11 @@ end
 map("n", "<leader>cw", function() MiniTrailspace.trim() end, { desc = "Trim trailing whitespace" })
 map("n", "<leader>tp", "<cmd>Precognition toggle<cr>",       { desc = "Toggle precognition hints" })
 map("n", "<leader>th", function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled()) end, { desc = "Toggle inlay hints" })
+map("n", "<leader>tc", function()
+  local on = not vim.lsp.inline_completion.is_enabled()
+  vim.lsp.inline_completion.enable(on)
+  vim.notify("Copilot inline completion: " .. (on and "ON" or "OFF"))
+end, { desc = "Toggle Copilot inline completion" })
 
 -- read by conform's format_on_save in setup/coding.lua
 map("n", "<leader>tf", function()
@@ -184,6 +198,73 @@ map("n", "<leader>du", function() require("dapui").toggle() end,                
 map("n", "<leader>dt", function() require("dap").terminate() end,                           { desc = "Terminate" })
 -- rustaceanvim picks the right cargo target/test to debug
 map("n", "<leader>dR", function() vim.cmd.RustLsp("debuggables") end,                       { desc = "Rust debuggables" })
+
+-- rustaceanvim under <leader>c (+code), buffer-local so it only exists in rust files.
+-- Free letters only: cf (format), cd (line diagnostics) and cw (trim) are taken globally.
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("theo_rust_keymaps", { clear = true }),
+  pattern = "rust",
+  callback = function(ev)
+    local rmap = function(lhs, cmd, desc)
+      map("n", lhs, function() vim.cmd.RustLsp(cmd) end, { buffer = ev.buf, desc = desc })
+    end
+    rmap("<leader>cr", "runnables",        "Rust: runnables")
+    rmap("<leader>ct", "testables",        "Rust: testables")
+    rmap("<leader>cm", "expandMacro",      "Rust: expand macro")
+    rmap("<leader>ce", "explainError",     "Rust: explain error (rustc --explain)")
+    rmap("<leader>cD", "renderDiagnostic", "Rust: render diagnostic (cargo style)")
+    rmap("<leader>cc", "openCargo",        "Rust: open Cargo.toml")
+    rmap("<leader>cp", "parentModule",     "Rust: parent module")
+    rmap("<leader>co", "openDocs",         "Rust: open docs.rs for symbol")
+    rmap("<leader>cj", "joinLines",        "Rust: join lines")
+    rmap("<leader>ca", "codeAction",       "Rust: code action (grouped)")
+  end,
+})
+
+-- mini.visits, <leader>v = +visits (frecency history; labels group files by hand)
+map("n", "<leader>vv", function() MiniExtra.pickers.visit_paths() end,            { desc = "Visits (this cwd, frecency)" })
+map("n", "<leader>vV", function() MiniExtra.pickers.visit_paths({ cwd = "" }) end, { desc = "Visits (all cwds)" })
+map("n", "<leader>vl", function() MiniExtra.pickers.visit_labels() end,           { desc = "Pick by label" })
+map("n", "<leader>va", function() MiniVisits.add_label() end,                     { desc = "Add label to file" })
+map("n", "<leader>vr", function() MiniVisits.remove_label() end,                  { desc = "Remove label from file" })
+map("n", "]v", function() MiniVisits.iterate_paths("forward") end,                { desc = "Next visited file" })
+map("n", "[v", function() MiniVisits.iterate_paths("backward") end,               { desc = "Prev visited file" })
+
+-- treesitter-context
+map("n", "<leader>tx", "<cmd>TSContext toggle<cr>", { desc = "Toggle sticky scope header" })
+map("n", "gK", function() require("treesitter-context").go_to_context(vim.v.count1) end, { desc = "Go to enclosing scope" })
+
+-- copy the current file path, <leader>y = +yank
+-- relative = from cwd (what you paste in a PR comment or a chat), absolute = full path
+local function yank(text)
+  vim.fn.setreg("+", text)
+  vim.notify("Copied: " .. text)
+end
+map("n", "<leader>yp", function() yank(vim.fn.expand("%:.")) end,  { desc = "Yank relative path" })
+map("n", "<leader>yP", function() yank(vim.fn.expand("%:p")) end,  { desc = "Yank absolute path" })
+map("n", "<leader>yf", function() yank(vim.fn.expand("%:t")) end,  { desc = "Yank file name" })
+map("n", "<leader>yl", function() yank(vim.fn.expand("%:.") .. ":" .. vim.fn.line(".")) end,
+  { desc = "Yank path:line" })
+map("n", "<leader>yL", function() yank(vim.fn.expand("%:p") .. ":" .. vim.fn.line(".")) end,
+  { desc = "Yank absolute path:line" })
+-- visual: path:first-last of the selection
+map("v", "<leader>yl", function()
+  local first, last = vim.fn.line("v"), vim.fn.line(".")
+  if first > last then first, last = last, first end
+  local range = first == last and tostring(first) or (first .. "-" .. last)
+  yank(vim.fn.expand("%:.") .. ":" .. range)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+end, { desc = "Yank path:lines" })
+
+-- mini.sessions, <leader>S = +session
+map("n", "<leader>Sl", function() MiniSessions.select() end, { desc = "Load session" })
+map("n", "<leader>Sd", function() MiniSessions.select("delete") end, { desc = "Delete session" })
+map("n", "<leader>Sr", function() MiniSessions.read() end, { desc = "Restore latest session" })
+map("n", "<leader>Ss", function()
+  vim.ui.input({ prompt = "Session name: ", default = vim.fn.fnamemodify(vim.uv.cwd(), ":t") }, function(name)
+    if name and name ~= "" then MiniSessions.write(name) end
+  end)
+end, { desc = "Save session" })
 
 -- vim.pack, <leader>p = +plugins
 map("n", "<leader>pu", function() vim.pack.update() end,                                    { desc = "Update all plugins" })

@@ -1,0 +1,30 @@
+# Shared, identity-free git settings. Included from .gitconfig via [include].
+# On a machine where the `git` package is NOT stowed (work laptop: its own
+# identity + gpg signing), pull this in with one line in ~/.gitconfig:
+#   [include]
+#     path = ~/.config/dotfile/git/.gitconfig-shared
+#
+# delta: syntax-highlighted, side-by-side diffs (pacman -S git-delta)
+[core]
+  pager = delta
+[interactive]
+  diffFilter = delta --color-only
+[delta]
+  navigate = true          # n / N jump between files in the pager
+  side-by-side = true
+  line-numbers = true
+  hyperlinks = true        # ghostty opens file:line on click
+  dark = true
+[diff]
+  colorMoved = default
+  algorithm = histogram
+[merge]
+  conflictStyle = zdiff3
+[rerere]
+  enabled = true           # remember conflict resolutions
+[push]
+  autoSetupRemote = true
+[rebase]
+  autosquash = true
+[branch]
+  sort = -committerdate

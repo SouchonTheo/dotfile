@@ -61,6 +61,10 @@ miniclue.setup({
     { mode = "n", keys = "<leader>T", desc = "+test" },
     { mode = "n", keys = "<leader>d", desc = "+debug" },
     { mode = "n", keys = "<leader>p", desc = "+plugins" },
+    { mode = "n", keys = "<leader>S", desc = "+session" },
+    { mode = "n", keys = "<leader>v", desc = "+visits" },
+    { mode = "n", keys = "<leader>y", desc = "+yank path" },
+    { mode = "x", keys = "<leader>y", desc = "+yank path" },
     miniclue.gen_clues.builtin_completion(),
     miniclue.gen_clues.g(),
     miniclue.gen_clues.marks(),
@@ -107,6 +111,55 @@ require("mini.trailspace").setup()
 require("mini.misc").setup()
 MiniMisc.setup_restore_cursor()
 
+-- frecency-ranked file history, one store per cwd, plus manual labels
+-- (e.g. "core", "wip"). Pickers and label maps live in keymaps.lua.
+require("mini.visits").setup()
+
+-- git hunks in the sign column + inline overlay (<leader>go). Owns the sign
+-- column and hunk ops; gitsigns stays only for blame (its signs are off).
+-- Default maps from setup(): gh = apply hunk (operator), gH = reset hunk,
+-- gh in visual = textobject, [h ]h = prev/next hunk (rebound in keymaps.lua).
+require("mini.diff").setup({
+  view = { style = "sign", signs = { add = "▎", change = "▎", delete = "" } },
+})
+
+-- sessions live in stdpath("data")/session; <leader>S* in keymaps.lua.
+-- autowrite keeps the active session in sync on exit, nothing is read automatically.
+require("mini.sessions").setup({
+  autoread = false, -- only handles a local Session.vim; the project logic is below
+  autowrite = true, -- the active session is re-saved on exit, so you always land where you left
+})
+
+-- `nvim` with no file inside a project that has a saved session (<leader>Ss names
+-- it after the cwd) restores it: buffers, windows, cursor positions.
+-- `nvim file.rs` never does, an explicit file wins.
+vim.api.nvim_create_autocmd("VimEnter", {
+  group = vim.api.nvim_create_augroup("theo_session_restore", { clear = true }),
+  nested = true,
+  callback = function()
+    if vim.fn.argc() > 0 then return end
+    local name = vim.fn.fnamemodify(vim.uv.cwd(), ":t")
+    if MiniSessions.detected[name] then MiniSessions.read(name) end
+  end,
+})
+
+-- And the first save is automatic too: leaving nvim inside a git repo with at
+-- least one real file open writes the project session if none is active yet
+-- (autowrite already covers the case where one was restored or saved by hand).
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = vim.api.nvim_create_augroup("theo_session_autosave", { clear = true }),
+  callback = function()
+    if vim.v.this_session ~= "" then return end
+    if vim.fn.isdirectory(vim.uv.cwd() .. "/.git") == 0 then return end
+    for _, b in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.bo[b].buflisted and vim.bo[b].buftype == "" and vim.api.nvim_buf_get_name(b) ~= "" then
+        MiniSessions.write(vim.fn.fnamemodify(vim.uv.cwd(), ":t"))
+        return
+      end
+    end
+  end,
+})
+
 require("mini.operators").setup({
   evaluate = { prefix = "g="  },
   exchange = { prefix = "gX"  }, -- moved (gx = URL open in 0.10+)
@@ -127,6 +180,7 @@ starter.setup({
   evaluate_single = true,
   items = {
     starter.sections.builtin_actions(),
+    starter.sections.sessions(5, true),
     starter.sections.recent_files(10, false),
     starter.sections.recent_files(10, true),
   },

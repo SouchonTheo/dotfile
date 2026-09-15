@@ -16,49 +16,52 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- sticky header showing the enclosing fn / impl / mod while scrolling
+require("treesitter-context").setup({
+  max_lines = 3,
+  multiline_threshold = 1, -- one line per scope level
+  trim_scope = "outer",
+  mode = "cursor",
+})
+
 require("nvim-treesitter-textobjects").setup({
   select = { lookahead = true },
   move = { set_jumps = true }, -- jumplist-aware
 })
 
--- copilot: inline suggestions off, it feeds the blink menu via blink-copilot
-require("copilot").setup({
-  suggestion = { enabled = false },
-  panel = { enabled = false },
-  filetypes = { ["*"] = true },
-})
+-- blink.cmp v2 needs a native fuzzy lib (cargo build --release, stable toolchain).
+-- Official vim.pack recipe (:h blink-cmp-installation-vim.pack): build() is a
+-- no-op when the lib for the current commit already exists, so this only blocks
+-- on first install and after an update. A PackChanged autocmd doesn't work here:
+-- it would be registered after vim.pack.add() already fired the install event.
+local blink = require("blink.cmp")
+blink.build():wait(60000)
 
--- blink.cmp v2 needs a native fuzzy lib built on install/update
-vim.api.nvim_create_autocmd("PackChanged", {
-  callback = function(ev)
-    local d = ev.data or {}
-    if d.spec and d.spec.name == "blink.cmp" and (d.kind == "install" or d.kind == "update") then
-      vim.notify("Building blink.cmp native lib...", vim.log.levels.INFO)
-      pcall(function() require("blink.cmp").build():wait(60000) end)
-    end
-  end,
-})
-
-require("blink.cmp").setup({
+blink.setup({
   -- "enter" preset: <CR> accepts (falls back to newline when the menu is closed),
   -- <Tab>/<S-Tab> navigate snippets, <C-y> also accepts.
-  keymap = { preset = "enter" },
+  -- <Tab> also accepts the Copilot ghost text (native inline completion, lsp.lua):
+  -- a function in a blink keymap chain stops the chain when it returns true,
+  -- and inline_completion.get() returns true exactly when it applied a candidate.
+  keymap = {
+    preset = "enter",
+    ["<Tab>"] = {
+      "snippet_forward",
+      function() return vim.lsp.inline_completion.get() end,
+      "fallback",
+    },
+  },
   appearance = { nerd_font_variant = "mono" },
   snippets = { preset = "mini_snippets" },
   completion = {
     documentation = { auto_show = true, auto_show_delay_ms = 300 },
-    ghost_text = { enabled = true },
+    -- off: it would fight the Copilot inline ghost text for the same virtual text
+    ghost_text = { enabled = false },
   },
   signature = { enabled = true },
   sources = {
-    default = { "lsp", "path", "snippets", "buffer", "copilot", "lazydev" },
+    default = { "lsp", "path", "snippets", "buffer", "lazydev" },
     providers = {
-      copilot = {
-        name = "copilot",
-        module = "blink-copilot",
-        score_offset = 100,
-        async = true,
-      },
       lazydev = {
         name = "LazyDev",
         module = "lazydev.integrations.blink",

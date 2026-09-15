@@ -28,6 +28,10 @@
       "rev": "393fd009c39b24dfc4cb4bf6f632288c64b13258",
       "src": "https://github.com/zbirenbaum/copilot.lua"
     },
+    "crates.nvim": {
+      "rev": "7039bc1d130e424232a7aa64ceddb170a154ff5b",
+      "src": "https://github.com/saecki/crates.nvim"
+    },
     "fidget.nvim": {
       "rev": "82404b196e73a00b1727a91903beef5ddc319d22",
       "src": "https://github.com/j-hui/fidget.nvim"
@@ -84,6 +88,10 @@
       "rev": "a01471856e462144ea53972f22a67e790be68ee6",
       "src": "https://github.com/echasnovski/mini.cursorword"
     },
+    "mini.diff": {
+      "rev": "626b8a5b93874c4d05ca25aedec56cfff0b378fb",
+      "src": "https://github.com/echasnovski/mini.diff"
+    },
     "mini.extra": {
       "rev": "5b0acf09d7f7958946973367c66bf5aafe4209dd",
       "src": "https://github.com/echasnovski/mini.extra"
@@ -128,6 +136,10 @@
       "rev": "4522d9ab65224675df2cf1ede8c12f0410aae2be",
       "src": "https://github.com/echasnovski/mini.pick"
     },
+    "mini.sessions": {
+      "rev": "59b682b3208eefb5053a80dd3bc93ced69f363af",
+      "src": "https://github.com/echasnovski/mini.sessions"
+    },
     "mini.snippets": {
       "rev": "9a08aa14e02abb790c823a622d7d6c736cbbe65a",
       "src": "https://github.com/echasnovski/mini.snippets"
@@ -156,6 +168,10 @@
       "rev": "22653218f1aedc9bf306c8b4e8ec2c8a575f6fae",
       "src": "https://github.com/echasnovski/mini.trailspace"
     },
+    "mini.visits": {
+      "rev": "1b840f3e8f17d92ccba493f9e7ba62fe800dea4c",
+      "src": "https://github.com/echasnovski/mini.visits"
+    },
     "neotest": {
       "rev": "ad991822b7076b1d940b33a9d6d0d30416d5df81",
       "src": "https://github.com/nvim-neotest/neotest"
@@ -180,6 +196,10 @@
       "rev": "4916d6592ede8c07973490d9322f187e07dfefac",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",
       "version": "'main'"
+    },
+    "nvim-treesitter-context": {
+      "rev": "f3061339b8eaf9fda873600bc425b8d2d8502533",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter-context"
     },
     "nvim-treesitter-textobjects": {
       "rev": "851e865342e5a4cb1ae23d31caf6e991e1c99f1e",

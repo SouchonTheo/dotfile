@@ -5,5 +5,9 @@
 [core]
   excludesfile = ~/.gitignore
 
+# identity-free settings (delta, merge/rebase defaults) shared by every machine
+[include]
+  path = ~/.gitconfig-shared
+
 [alias]
   fp = fetch --prune

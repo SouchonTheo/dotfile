@@ -37,6 +37,13 @@ vim.g.rustaceanvim = {
   },
 }
 
+-- crates.nvim runs an in-process LSP on Cargo.toml buffers: blink completes
+-- crate names/versions/features through the "lsp" source, gra gives its actions.
+require("crates").setup({
+  lsp = { enabled = true, actions = true, completion = true, hover = true },
+  completion = { crates = { enabled = true } }, -- crates.io name search
+})
+
 require("neotest").setup({
   adapters = {
     require("rustaceanvim.neotest"),

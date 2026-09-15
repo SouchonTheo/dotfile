@@ -5,6 +5,8 @@
 // (Mod+ALT+L, Mod+CTRL+Return, Mod+Shift+ESCAPE, Mod+CTRL+1..9,
 // CTRL+Shift+1/2/3) stay active in parallel. Killing them means editing
 // cfg/keybinds.kdl directly, which loses the pristine state.
+//
+// Noctalia v5: IPC is `noctalia msg …` (v4 was `qs -c noctalia-shell ipc call …`).
 
 binds {
 
@@ -13,7 +15,10 @@ binds {
     Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
 
     Mod+B hotkey-overlay-title="Open Browser: Helium" { spawn "helium-browser"; }
-    Mod+Shift+C hotkey-overlay-title="Open Claude" { spawn "helium-browser" "--app=https://claude.ai"; }
+    Mod+Shift+C hotkey-overlay-title="Open Claude" { spawn "helium-browser" "--app=https://claude.ai" "--class=claude"; }
+    // Slack as an installed Helium web app: its own .desktop, icon and name, so
+    // notifications carry the Slack logo instead of Helium's.
+    Mod+Shift+S hotkey-overlay-title="Open Slack" { spawn "gtk-launch" "chrome-ickbinallcmgeffnndjeahagmbfbpcie-Default"; }
 
     // vanilla = fullscreen-window
     Mod+F                               { maximize-column; }
@@ -28,10 +33,10 @@ binds {
     Mod+Shift+K                         { show-hotkey-overlay; }
 
     // was Mod+CTRL+Return
-    Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
+    Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
 
     // was Mod+ALT+L
-    Mod+Shift+L                         hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
+    Mod+Shift+L                         hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "noctalia msg session lock"; }
 
     // was Mod+CTRL+1..9
     Mod+Shift+1                         { move-column-to-workspace 1; }
@@ -44,24 +49,43 @@ binds {
     Mod+Shift+8                         { move-column-to-workspace 8; }
     Mod+Shift+9                         { move-column-to-workspace 9; }
 
-    // was CTRL+Shift+1/2/3
-    Print                               { screenshot; }
-    Shift+Print                         { screenshot-screen; }
+    // was CTRL+Shift+1/2/3. Region + full screen go through noctalia (annotation
+    // editor, copy + save, see [shell.screenshot]); niri keeps the window capture.
+    Print                               hotkey-overlay-title="Screenshot region: noctalia" { spawn-sh "noctalia msg screenshot-region"; }
+    Shift+Print                         hotkey-overlay-title="Screenshot screen: noctalia" { spawn-sh "noctalia msg screenshot-fullscreen"; }
     CTRL+Print                          { screenshot-window; }
 
     // 3. new bindings, no vanilla equivalent
 
     Mod+A                               hotkey-overlay-title="Open AI: claude" { spawn "gtk-launch" "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default"; }
-    Mod+Shift+E                         hotkey-overlay-title="Spawn Emoji Picker: noctalia emoji" { spawn-sh "qs -c noctalia-shell ipc call plugin:kaomoji toggle"; }
+    // built-in emoji provider of the v5 launcher (the v4 kaomoji plugin is gone)
+    Mod+Shift+E                         hotkey-overlay-title="Spawn Emoji Picker: noctalia emoji" { spawn-sh "noctalia msg panel-toggle launcher '/emo'"; }
 
     Mod+V                               hotkey-overlay-title="Paste (Shift+Insert)" { spawn-sh "wtype -M shift -k Insert -m shift"; }
     Mod+X                               hotkey-overlay-title="Cut (Ctrl+X)" { spawn-sh "wtype -M ctrl -k x -m ctrl"; }
-    Mod+Shift+V                         hotkey-overlay-title="Clipboard manager: noctalia" { spawn-sh "qs -c noctalia-shell ipc call launcher clipboard"; }
+    Mod+Shift+V                         hotkey-overlay-title="Clipboard manager: noctalia" { spawn-sh "noctalia msg panel-toggle clipboard"; }
 
     Mod+R                               { switch-preset-column-width; }
     Mod+Shift+R                         { switch-preset-window-height; }
     Mod+Ctrl+R                          { reset-window-height; }
 
+    Alt+Tab                             hotkey-overlay-title="Window switcher: noctalia" { spawn-sh "noctalia msg window-switcher"; }
+
     // requires HandlePowerKey=ignore in logind
-    XF86PowerOff                        allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
+    XF86PowerOff                        allow-when-locked=true { spawn-sh "noctalia msg panel-toggle session"; }
+
+    // vim-motion monitor moves (mirrors Mod+Shift+CTRL+arrow in cfg/keybinds.kdl)
+    Mod+Shift+CTRL+H                    { move-column-to-monitor-left; }
+    Mod+Shift+CTRL+L                    { move-column-to-monitor-right; }
+    Mod+Shift+CTRL+K                    { move-column-to-monitor-up; }
+    Mod+Shift+CTRL+J                    { move-column-to-monitor-down; }
+
+    // vim-motion monitor focus, left/down only: Mod+Shift+K and Mod+Shift+L are
+    // taken by the hotkey overlay and the lock screen above. The work machine
+    // used to have all four (H/J/K/L → focus-monitor-*); pick one design and
+    // uncomment/remove accordingly.
+    Mod+Shift+H                         { focus-monitor-left; }
+    Mod+Shift+J                         { focus-monitor-down; }
+    // Mod+Shift+K                      { focus-monitor-up; }
+    // Mod+Shift+L                      { focus-monitor-right; }
 }

@@ -1,4 +1,6 @@
-require("gitsigns").setup()
+-- signs and hunk operations are mini.diff's job (setup/mini.lua); gitsigns
+-- is kept for what mini.diff lacks: blame.
+require("gitsigns").setup({ signcolumn = false, numhl = false, linehl = false })
 
 require("todo-comments").setup({ signs = false })
 
@@ -17,6 +19,7 @@ require("fidget").setup({
     },
   },
   notification = {
+    override_vim_notify = true, -- route vim.notify() through fidget instead of the cmdline
     window = { winblend = 0, border = "rounded" },
   },
 })
