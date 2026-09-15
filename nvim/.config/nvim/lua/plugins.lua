@@ -64,6 +64,7 @@ vim.pack.add({
 
   -- LSP helpers + UI
   { src = "https://github.com/folke/lazydev.nvim" },
+  { src = "https://github.com/b0o/SchemaStore.nvim" },      -- JSON/YAML schema catalog for jsonls / yamlls
   { src = "https://github.com/mrjones2014/codesettings.nvim" },
   { src = "https://github.com/j-hui/fidget.nvim" },
 

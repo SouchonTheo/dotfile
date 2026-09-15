@@ -44,17 +44,34 @@ vim.lsp.config("taplo", {
   root_markers = { "taplo.toml", ".taplo.toml", ".git" },
 })
 
+-- JSON: pnpm add -g vscode-langservers-extracted. Formatting comes from the server
+-- (provideFormatter) and conform falls back to it when prettier is not installed.
+-- Schemas: SchemaStore matches by file name (package.json, tsconfig.json,
+-- .vscode/settings.json, .github/workflows/*.yml, ...), giving completion + validation.
+local ok_store, schemastore = pcall(require, "schemastore")
 vim.lsp.config("jsonls", {
   cmd = { "vscode-json-language-server", "--stdio" },
   filetypes = { "json", "jsonc" },
   root_markers = { ".git" },
   init_options = { provideFormatter = true },
+  settings = {
+    json = {
+      schemas = ok_store and schemastore.json.schemas() or {},
+      validate = { enable = true },
+    },
+  },
 })
 
 vim.lsp.config("yamlls", {
   cmd = { "yaml-language-server", "--stdio" },
   filetypes = { "yaml", "yaml.docker-compose" },
   root_markers = { ".git" },
+  settings = {
+    yaml = {
+      schemaStore = { enable = false, url = "" }, -- SchemaStore.nvim provides the list instead
+      schemas = ok_store and schemastore.yaml.schemas() or {},
+    },
+  },
 })
 
 -- bashls shells out to shellcheck for diagnostics, install both to get them

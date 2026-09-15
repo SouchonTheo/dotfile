@@ -16,9 +16,7 @@ binds {
 
     Mod+B hotkey-overlay-title="Open Browser: Helium" { spawn "helium-browser"; }
     Mod+Shift+C hotkey-overlay-title="Open Claude" { spawn "helium-browser" "--app=https://claude.ai" "--class=claude"; }
-    // Slack as an installed Helium web app: its own .desktop, icon and name, so
-    // notifications carry the Slack logo instead of Helium's.
-    Mod+Shift+S hotkey-overlay-title="Open Slack" { spawn "gtk-launch" "chrome-ickbinallcmgeffnndjeahagmbfbpcie-Default"; }
+    Mod+Shift+S hotkey-overlay-title="Open Slack" { spawn "helium-browser" "--app=https://app.slack.com/client" "--class=slack"; }
 
     // vanilla = fullscreen-window
     Mod+F                               { maximize-column; }
