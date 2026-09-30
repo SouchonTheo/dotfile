@@ -6,3 +6,4 @@ git:
       name: delta
       colorArg: always
       command: delta --dark --paging=never --line-numbers --hyperlinks
+  overrideGpg: true

@@ -3,15 +3,23 @@ local parsers = {
   "rust", "lua", "vim", "vimdoc", "query",
   "markdown", "markdown_inline",
   "c", "zig", "toml", "json", "yaml", "bash", "regex", "diff",
+  "javascript", "typescript", "tsx", "jsdoc",
+  -- daily configs: niri (kdl), fish, git
+  "kdl", "fish", "gitcommit", "git_rebase", "gitignore", "dockerfile", "make", "ini",
 }
 require("nvim-treesitter").install(parsers)
 
+-- highlight + indentation from the parser when one is installed for the filetype.
+-- indentexpr is the piece smartindent can't do well in Rust (match arms, chained
+-- method calls, closing braces of nested blocks).
 vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("theo_treesitter", { clear = true }),
   callback = function(args)
     local ft = args.match
     local lang = vim.treesitter.language.get_lang(ft) or ft
     if vim.treesitter.language.add(lang) then
       pcall(vim.treesitter.start, args.buf, lang)
+      vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
     end
   end,
 })
@@ -40,7 +48,7 @@ blink.build():wait(60000)
 blink.setup({
   -- "enter" preset: <CR> accepts (falls back to newline when the menu is closed),
   -- <Tab>/<S-Tab> navigate snippets, <C-y> also accepts.
-  -- <Tab> also accepts the Copilot ghost text (native inline completion, lsp.lua):
+  -- <Tab> also accepts the Copilot ghost text (native inline completion, lua/lsp/attach.lua):
   -- a function in a blink keymap chain stops the chain when it returns true,
   -- and inline_completion.get() returns true exactly when it applied a candidate.
   keymap = {
@@ -52,7 +60,9 @@ blink.setup({
     },
   },
   appearance = { nerd_font_variant = "mono" },
-  snippets = { preset = "mini_snippets" },
+  -- native vim.snippet: expands LSP snippets, <Tab>/<S-Tab> jump between tabstops,
+  -- session ends by itself once the cursor leaves the snippet
+  snippets = { preset = "default" },
   completion = {
     documentation = { auto_show = true, auto_show_delay_ms = 300 },
     -- off: it would fight the Copilot inline ghost text for the same virtual text
@@ -60,7 +70,7 @@ blink.setup({
   },
   signature = { enabled = true },
   sources = {
-    default = { "lsp", "path", "snippets", "buffer", "lazydev" },
+    default = { "lsp", "path", "buffer", "lazydev" },
     providers = {
       lazydev = {
         name = "LazyDev",
@@ -78,6 +88,10 @@ require("conform").setup({
     rust = { "rustfmt" },
     c = { "clang-format" },
     zig = { "zigfmt" },
+    javascript = { "prettier" },
+    javascriptreact = { "prettier" },
+    typescript = { "prettier" },
+    typescriptreact = { "prettier" },
     json = { "prettier" },
     yaml = { "prettier" },
     markdown = { "prettier" },

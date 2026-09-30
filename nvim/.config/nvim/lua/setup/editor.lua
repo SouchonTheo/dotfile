@@ -1,7 +1,3 @@
--- signs and hunk operations are mini.diff's job (setup/mini.lua); gitsigns
--- is kept for what mini.diff lacks: blame.
-require("gitsigns").setup({ signcolumn = false, numhl = false, linehl = false })
-
 require("todo-comments").setup({ signs = false })
 
 require("grug-far").setup()
@@ -9,6 +5,15 @@ require("grug-far").setup()
 require("render-markdown").setup({
   file_types = { "markdown" },
   completions = { lsp = { enabled = true } },
+})
+
+-- browser preview with mermaid / KaTeX, refreshed on every edit (no save needed).
+-- dynamic_root serves from the file's directory, so relative images resolve
+-- even when the file lives outside the cwd.
+require("livepreview.config").set({
+  dynamic_root = true,
+  sync_scroll = true,
+  picker = "mini.pick",
 })
 
 require("fidget").setup({
@@ -39,25 +44,3 @@ require("flash").setup({
   label = { rainbow = { enabled = true, shade = 5 } },
 })
 
--- motion hints above each line, hidden until <leader>tp
-require("precognition").setup({
-  startVisible = false,
-  showBlankVirtLine = false,
-  hints = {
-    Caret      = { text = "^",  prio = 2 },
-    Dollar     = { text = "$",  prio = 1 },
-    MatchingPair = { text = "%", prio = 5 },
-    w          = { text = "w",  prio = 10 },
-    b          = { text = "b",  prio = 9  },
-    e          = { text = "e",  prio = 8  },
-    W          = { text = "W",  prio = 7  },
-    B          = { text = "B",  prio = 6  },
-    E          = { text = "E",  prio = 4  },
-  },
-  gutterHints = {
-    G          = { text = "G",  prio = 10 },
-    gg         = { text = "gg", prio = 9  },
-    PrevParagraph = { text = "{", prio = 8 },
-    NextParagraph = { text = "}", prio = 8 },
-  },
-})

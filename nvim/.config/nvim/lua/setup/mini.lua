@@ -2,31 +2,25 @@ require("mini.icons").setup()
 MiniIcons.mock_nvim_web_devicons() -- compat for plugins that expect nvim-web-devicons
 
 require("mini.ai").setup()
-require("mini.comment").setup()
-require("mini.surround").setup()
+
+-- gs* instead of the default s*: flash owns `s` (keymaps.lua), and with both
+-- defined `s` had to wait timeoutlen and `sa`/`sd`/`sr`… hijacked the jump.
+-- Same layout as LazyVim: gsa add, gsd delete, gsr replace, gsf/gsF find, gsh highlight.
+require("mini.surround").setup({
+  mappings = {
+    add = "gsa", delete = "gsd", find = "gsf", find_left = "gsF",
+    highlight = "gsh", replace = "gsr", update_n_lines = "gsn",
+  },
+})
 require("mini.move").setup()
 require("mini.pairs").setup()
 
+-- only hex colors here: TODO/FIXME/HACK/NOTE are todo-comments' job (highlight + ]t/[t)
 local hipatterns = require("mini.hipatterns")
 hipatterns.setup({
-  highlighters = {
-    fixme = { pattern = "%f[%w]()FIXME()%f[%W]", group = "MiniHipatternsFixme" },
-    hack  = { pattern = "%f[%w]()HACK()%f[%W]",  group = "MiniHipatternsHack" },
-    todo  = { pattern = "%f[%w]()TODO()%f[%W]",  group = "MiniHipatternsTodo" },
-    note  = { pattern = "%f[%w]()NOTE()%f[%W]",  group = "MiniHipatternsNote" },
-    hex_color = hipatterns.gen_highlighter.hex_color(),
-  },
+  highlighters = { hex_color = hipatterns.gen_highlighter.hex_color() },
 })
 
--- All animations off for now, flip any `enable` to true to re-enable.
--- (scroll is the one paired with the <C-d>/<C-u> maps in keymaps.lua)
-require("mini.animate").setup({
-  cursor = { enable = false },
-  scroll = { enable = false },
-  resize = { enable = false },
-  open   = { enable = false },
-  close  = { enable = false },
-})
 require("mini.indentscope").setup({
   symbol = "│",
   options = { try_as_border = true },
@@ -67,6 +61,8 @@ miniclue.setup({
     { mode = "x", keys = "<leader>y", desc = "+yank path" },
     miniclue.gen_clues.builtin_completion(),
     miniclue.gen_clues.g(),
+    { mode = "n", keys = "gs", desc = "+surround" },
+    { mode = "x", keys = "gs", desc = "+surround" },
     miniclue.gen_clues.marks(),
     miniclue.gen_clues.registers(),
     miniclue.gen_clues.windows(),
@@ -74,7 +70,7 @@ miniclue.setup({
   },
   window = {
     delay = 300,
-    config = { width = "auto", border = "rounded" },
+    config = { width = "auto" }, -- border comes from 'winborder'
   },
 })
 
@@ -83,7 +79,16 @@ require("mini.pick").setup({
     move_down = "<C-j>",
     move_up   = "<C-k>",
   },
-  window = { config = { border = "rounded" } },
+})
+
+-- Every picker opens with its preview pane already shown. mini.pick has no
+-- option for that, but it fires MiniPickStart and reads keys from typeahead,
+-- so feeding its toggle_preview key (<Tab>) right at start does the job.
+-- <Tab> again hides it for the current picker.
+vim.api.nvim_create_autocmd("User", {
+  group = vim.api.nvim_create_augroup("theo_pick_preview", { clear = true }),
+  pattern = "MiniPickStart",
+  callback = function() vim.api.nvim_feedkeys(vim.keycode("<Tab>"), "t", false) end,
 })
 
 require("mini.files").setup({
@@ -98,12 +103,72 @@ require("mini.files").setup({
   options = { use_as_default_explorer = true },
 })
 
-require("mini.tabline").setup()
+-- each tab shows its error / warning count, so a broken file is visible from
+-- any other buffer (rust-analyzer publishes diagnostics for the whole workspace).
+local sev = vim.diagnostic.severity
+require("mini.tabline").setup({
+  format = function(buf_id, label)
+    local counts = vim.diagnostic.count(buf_id)
+    local suffix = ""
+    if (counts[sev.ERROR] or 0) > 0 then suffix = suffix .. "\u{F057} " .. counts[sev.ERROR] .. " " end
+    if (counts[sev.WARN] or 0) > 0 then suffix = suffix .. "\u{F071} " .. counts[sev.WARN] .. " " end
+    return MiniTabline.default_format(buf_id, label) .. suffix
+  end,
+})
+-- Colour for those counters. mini.tabline escapes "%" in labels, so a highlight
+-- can't be injected from format(); instead the finished tabline string is
+-- post-processed: inside each "%#MiniTablineX#…" segment the counters get
+-- "%#MiniTablineXError#" / "%#MiniTablineXWarn#" (diagnostic fg on that tab's bg),
+-- then the segment's own group is restored.
+local tab_groups = {
+  "MiniTablineCurrent", "MiniTablineVisible", "MiniTablineHidden",
+  "MiniTablineModifiedCurrent", "MiniTablineModifiedVisible", "MiniTablineModifiedHidden",
+}
+local function make_tabline_diag_hl()
+  for _, base in ipairs(tab_groups) do
+    local bg = vim.api.nvim_get_hl(0, { name = base, link = false }).bg
+    for suffix, src in pairs({ Error = "DiagnosticError", Warn = "DiagnosticWarn" }) do
+      local fg = vim.api.nvim_get_hl(0, { name = src, link = false }).fg
+      vim.api.nvim_set_hl(0, base .. suffix, { fg = fg, bg = bg, bold = true })
+    end
+  end
+end
+make_tabline_diag_hl()
+
+function _G.theo_tabline()
+  local s = MiniTabline.make_tabline_string()
+  local out, pos = {}, 1
+  while true do
+    local a, b, group = s:find("%%#(MiniTabline%w+)#", pos)
+    if not a then table.insert(out, s:sub(pos)) break end
+    table.insert(out, s:sub(pos, b))
+    local nxt = s:find("%#", b + 1, true) or (#s + 1)
+    local body = s:sub(b + 1, nxt - 1)
+    body = body:gsub("(\u{F057} %d+)", "%%#" .. group .. "Error#%1%%#" .. group .. "#")
+    body = body:gsub("(\u{F071} %d+)", "%%#" .. group .. "Warn#%1%%#" .. group .. "#")
+    table.insert(out, body)
+    pos = nxt
+  end
+  return table.concat(out)
+end
+vim.o.tabline = "%!v:lua.theo_tabline()"
+
+local tabline_diag = vim.api.nvim_create_augroup("theo_tabline_diag", { clear = true })
+-- the tabline only redraws on its own events, diagnostics arriving is not one of them
+vim.api.nvim_create_autocmd("DiagnosticChanged", { group = tabline_diag, callback = function() vim.cmd.redrawtabline() end })
+-- registered after mini.tabline's own ColorScheme hook, so its groups are already refreshed
+vim.api.nvim_create_autocmd("ColorScheme", { group = tabline_diag, callback = make_tabline_diag_hl })
 require("mini.statusline").setup({ use_icons = true })
 
 require("mini.bufremove").setup()
-require("mini.bracketed").setup()
+-- Two targets off instead of silently overridden: ]t/[t belong to todo-comments
+-- (keymaps.lua), ]d/[d to the native maps (they go through vim.diagnostic.jump,
+-- hence the float on arrival configured in options.lua; bracketed's own don't).
+require("mini.bracketed").setup({ treesitter = { suffix = "" }, diagnostic = { suffix = "" } })
 require("mini.splitjoin").setup()
+-- word-under-cursor highlight for buffers without an LSP (kdl, fish, toml…).
+-- Where a server supports documentHighlight, lua/lsp/attach.lua disables it per buffer and
+-- highlights the same *symbol* instead (semantic, not textual).
 require("mini.cursorword").setup({ delay = 200 })
 require("mini.jump").setup()        -- enhanced f/F/t/T (multi-line, ; repeats)
 require("mini.trailspace").setup()
@@ -116,34 +181,29 @@ MiniMisc.setup_restore_cursor()
 require("mini.visits").setup()
 
 -- git hunks in the sign column + inline overlay (<leader>go). Owns the sign
--- column and hunk ops; gitsigns stays only for blame (its signs are off).
--- Default maps from setup(): gh = apply hunk (operator), gH = reset hunk,
--- gh in visual = textobject, [h ]h = prev/next hunk (rebound in keymaps.lua).
+-- column and hunk ops. Default maps from setup(): gh = apply hunk (operator),
+-- gH = reset hunk, gh in visual = textobject, [h ]h = prev/next hunk (rebound in keymaps.lua).
 require("mini.diff").setup({
-  view = { style = "sign", signs = { add = "▎", change = "▎", delete = "" } },
+  view = { style = "sign", signs = { add = "▎", change = "▎", delete = "▁" } },
 })
 
+-- :Git <anything> with completion, output in a split; MiniGit.show_at_cursor()
+-- is the blame replacement (history of the line, or the commit under the cursor).
+-- Also feeds the branch name to mini.statusline.
+require("mini.git").setup()
+
 -- sessions live in stdpath("data")/session; <leader>S* in keymaps.lua.
--- autowrite keeps the active session in sync on exit, nothing is read automatically.
+-- autowrite keeps the active session in sync on exit.
 require("mini.sessions").setup({
   autoread = false, -- only handles a local Session.vim; the project logic is below
   autowrite = true, -- the active session is re-saved on exit, so you always land where you left
 })
 
--- `nvim` with no file inside a project that has a saved session (<leader>Ss names
--- it after the cwd) restores it: buffers, windows, cursor positions.
--- `nvim file.rs` never does, an explicit file wins.
-vim.api.nvim_create_autocmd("VimEnter", {
-  group = vim.api.nvim_create_augroup("theo_session_restore", { clear = true }),
-  nested = true,
-  callback = function()
-    if vim.fn.argc() > 0 then return end
-    local name = vim.fn.fnamemodify(vim.uv.cwd(), ":t")
-    if MiniSessions.detected[name] then MiniSessions.read(name) end
-  end,
-})
+-- Nothing is restored on its own: `nvim` in a project lands on the starter,
+-- whose first item is "Restore session <project>" when one exists (below).
+-- <leader>Sr also restores it from anywhere.
 
--- And the first save is automatic too: leaving nvim inside a git repo with at
+-- The first save is automatic though: leaving nvim inside a git repo with at
 -- least one real file open writes the project session if none is active yet
 -- (autowrite already covers the case where one was restored or saved by hand).
 vim.api.nvim_create_autocmd("VimLeavePre", {
@@ -165,20 +225,19 @@ require("mini.operators").setup({
   exchange = { prefix = "gX"  }, -- moved (gx = URL open in 0.10+)
   multiply = { prefix = "gm"  },
   replace  = { prefix = ""    }, -- disabled (conflicts with grr = LSP references)
-  sort     = { prefix = "gs"  },
-})
-
-local snip = require("mini.snippets")
-snip.setup({
-  snippets = {
-    snip.gen_loader.from_lang(),
-  },
+  sort     = { prefix = ""    }, -- disabled (gs = mini.surround prefix); :sort does the job
 })
 
 local starter = require("mini.starter")
 starter.setup({
   evaluate_single = true,
   items = {
+    -- the session named after the cwd, as a single item at the top (only when it exists)
+    function()
+      local name = vim.fn.fnamemodify(vim.uv.cwd(), ":t")
+      if not MiniSessions.detected[name] then return {} end
+      return { { name = "Restore session " .. name, action = function() MiniSessions.read(name) end, section = "Project" } }
+    end,
     starter.sections.builtin_actions(),
     starter.sections.sessions(5, true),
     starter.sections.recent_files(10, false),

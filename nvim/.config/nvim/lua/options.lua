@@ -18,7 +18,6 @@ end
 local o = vim.opt
 o.number = true
 o.relativenumber = true -- current line keeps its absolute number (number = true), others count from it
-o.termguicolors = true
 o.signcolumn = "yes"
 o.expandtab = true
 o.shiftwidth = 2
@@ -27,11 +26,9 @@ o.smartindent = true
 o.wrap = false
 o.swapfile = false
 o.undofile = true
-o.undodir = vim.fn.stdpath("state") .. "/undo"
 o.ignorecase = true
 o.smartcase = true
-o.incsearch = true
-o.hlsearch = false
+o.hlsearch = true -- <Esc> clears it (keymaps.lua)
 o.scrolloff = 8
 o.updatetime = 200
 o.timeoutlen = 400
@@ -40,7 +37,6 @@ o.splitright = true
 o.clipboard = "unnamedplus"
 o.cursorline = true
 o.confirm = true
-o.mouse = "a"
 -- reload buffers changed outside nvim (git checkout, rebase, stow).
 -- needs the checktime autocmd in autocmds.lua to actually fire.
 o.autoread = true
@@ -66,13 +62,29 @@ vim.diagnostic.config({
   virtual_lines = { current_line = true },
   severity_sort = true,
   underline = true,
-  float = { border = "rounded" },
+  -- every jump (native ]d [d ]D [D and the [e ]e [w ]w maps) opens the diagnostic
+  -- float on arrival. `float = true` per call is deprecated since 0.12.
+  jump = {
+    on_jump = function(_, bufnr)
+      vim.diagnostic.open_float({ bufnr = bufnr, scope = "cursor", focus = false })
+    end,
+  },
+  -- Nerd Font glyphs written as \u{} escapes so they can't silently turn into ""
+  -- again when the file goes through a terminal that doesn't render them.
   signs = {
     text = {
-      [vim.diagnostic.severity.ERROR] = "",
-      [vim.diagnostic.severity.WARN]  = "",
-      [vim.diagnostic.severity.INFO]  = "",
-      [vim.diagnostic.severity.HINT]  = "",
+      [vim.diagnostic.severity.ERROR] = "\u{F057}", -- nf-fa-times_circle
+      [vim.diagnostic.severity.WARN]  = "\u{F071}", -- nf-fa-warning
+      [vim.diagnostic.severity.INFO]  = "\u{F05A}", -- nf-fa-info_circle
+      [vim.diagnostic.severity.HINT]  = "\u{F400}", -- nf-oct-light_bulb
+    },
+    -- line number coloured by severity: with relative numbers, a red number in
+    -- the gutter is the first thing the eye catches on the screen
+    numhl = {
+      [vim.diagnostic.severity.ERROR] = "DiagnosticSignError",
+      [vim.diagnostic.severity.WARN]  = "DiagnosticSignWarn",
+      [vim.diagnostic.severity.INFO]  = "DiagnosticSignInfo",
+      [vim.diagnostic.severity.HINT]  = "DiagnosticSignHint",
     },
   },
 })

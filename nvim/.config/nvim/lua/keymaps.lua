@@ -6,6 +6,10 @@ map("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
 map("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
 
+-- splits: the key draws the separator (| = vertical, - = horizontal)
+map("n", "<leader>|", "<C-w>v", { desc = "Split window right" })
+map("n", "<leader>-", "<C-w>s", { desc = "Split window below" })
+
 for _, k in ipairs({ "<Up>", "<Down>", "<Left>", "<Right>" }) do
   map({ "n", "v" }, k, "<nop>")
 end
@@ -18,7 +22,10 @@ map("n", "<leader>fb",      "<cmd>Pick buffers<cr>",     { desc = "Buffers" })
 map("n", "<leader>fr",      "<cmd>Pick oldfiles<cr>",    { desc = "Recent files" })
 map("n", "<leader>fh",      "<cmd>Pick help<cr>",        { desc = "Help" })
 map("n", "<leader>fk",      "<cmd>Pick keymaps<cr>",     { desc = "Keymaps" })
-map("n", "<leader>fd",      "<cmd>Pick diagnostic<cr>",  { desc = "Diagnostics" })
+map("n", "<leader>fd",      "<cmd>Pick diagnostic<cr>",  { desc = "Diagnostics (workspace)" })
+map("n", "<leader>fD", function()
+  MiniExtra.pickers.diagnostic({ get_opts = { severity = vim.diagnostic.severity.ERROR } })
+end, { desc = "Errors only (workspace)" })
 
 map("n", "<leader>sg", "<cmd>Pick grep_live<cr>", { desc = "Grep project" })
 map("n", "<leader>sw", function() MiniPick.builtin.grep({ pattern = vim.fn.expand("<cword>") }) end,
@@ -66,12 +73,10 @@ map("n", "<leader>q", function()
   local open = vim.iter(vim.fn.getwininfo()):any(function(w) return w.quickfix == 1 end)
   vim.cmd(open and "cclose" or "copen")
 end, { desc = "Toggle quickfix list" })
+-- every workspace diagnostic into the quickfix, then ]q / [q to walk through them
+map("n", "<leader>Q", function() vim.diagnostic.setqflist({ open = true }) end, { desc = "Diagnostics to quickfix" })
 
--- keep cursor centered on half-page jumps and search hits.
--- NOTE: these were routed through MiniAnimate.execute_after to survive the
--- smooth-scroll animation. All mini.animate animations are off (setup/mini.lua),
--- so the plain form is equivalent. Restore the execute_after wrapper if you
--- ever re-enable `scroll = { enable = true }`.
+-- keep cursor centered on half-page jumps and search hits
 map("n", "<C-d>", "<C-d>zz")
 map("n", "<C-u>", "<C-u>zz")
 map("n", "n",     "nzvzz")
@@ -96,29 +101,26 @@ map("n", "<leader>gs", function() hunk_at_cursor("apply") end, { desc = "Stage h
 map("n", "<leader>gr", function() hunk_at_cursor("reset") end, { desc = "Reset hunk under cursor" })
 map("n", "<leader>gS", function() MiniDiff.do_hunks(0, "apply") end, { desc = "Stage all hunks in buffer" })
 map("n", "<leader>go", function() MiniDiff.toggle_overlay(0) end, { desc = "Toggle diff overlay" })
-map("n", "<leader>gp", function() MiniDiff.toggle_overlay(0) end, { desc = "Preview hunks (overlay)" })
-map("n", "<leader>gb", function() require("gitsigns").blame_line({ full = true }) end, { desc = "Blame line" })
+-- mini.git: history of the current line (git log -L), or the commit if the cursor is on a hash
+map("n", "<leader>gb", function() MiniGit.show_at_cursor() end, { desc = "Blame / history at cursor" })
+map("n", "<leader>gB", "<cmd>Git blame -- %<cr>", { desc = "Blame whole file" })
 map("n", "<leader>gg", "<cmd>LazyGit<cr>", { desc = "Lazygit" })
 
--- lsp info
-map("n", "<leader>li", function()
-  local clients = vim.lsp.get_clients({ bufnr = 0 })
-  if #clients == 0 then
-    vim.notify("No LSP clients attached to this buffer", vim.log.levels.WARN)
-    return
-  end
-  local lines = { "LSP clients for this buffer:", "" }
-  for _, c in ipairs(clients) do
-    table.insert(lines, ("• %s  (id=%d, root=%s)"):format(c.name, c.id, c.root_dir or "n/a"))
-  end
-  table.insert(lines, "")
-  table.insert(lines, "All running clients: " .. #vim.lsp.get_clients())
-  vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
-end, { desc = "LSP: info (this buffer)" })
-
-map("n", "<leader>lh", "<cmd>checkhealth vim.lsp<cr>", { desc = "LSP: checkhealth" })
-map("n", "<leader>ll", function() vim.cmd("edit " .. vim.lsp.get_log_path()) end, { desc = "LSP: open log" })
+-- lsp, <leader>l: the native 0.11 commands, nothing custom
+map("n", "<leader>li", "<cmd>LspInfo<cr>",    { desc = "LSP: info (clients, roots, health)" })
+map("n", "<leader>ll", "<cmd>LspLog<cr>",     { desc = "LSP: open log" })
 map("n", "<leader>lr", "<cmd>LspRestart<cr>", { desc = "LSP: restart" })
+
+-- diagnostics: ]d [d ]D [D are native (float on arrival via jump.on_jump in
+-- options.lua), only the severity-filtered variants are added.
+local function diag_jump(count, severity)
+  return function() vim.diagnostic.jump({ count = count, severity = severity }) end
+end
+map("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Line diagnostics" })
+map("n", "[e", diag_jump(-1, vim.diagnostic.severity.ERROR), { desc = "Prev error" })
+map("n", "]e", diag_jump(1,  vim.diagnostic.severity.ERROR), { desc = "Next error" })
+map("n", "[w", diag_jump(-1, vim.diagnostic.severity.WARN),  { desc = "Prev warning" })
+map("n", "]w", diag_jump(1,  vim.diagnostic.severity.WARN),  { desc = "Next warning" })
 
 -- flash.nvim
 map({ "n", "x", "o" }, "s", function() require("flash").jump() end,            { desc = "Flash jump" })
@@ -159,7 +161,6 @@ if ok_mv then
 end
 
 map("n", "<leader>cw", function() MiniTrailspace.trim() end, { desc = "Trim trailing whitespace" })
-map("n", "<leader>tp", "<cmd>Precognition toggle<cr>",       { desc = "Toggle precognition hints" })
 map("n", "<leader>th", function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled()) end, { desc = "Toggle inlay hints" })
 map("n", "<leader>tc", function()
   local on = not vim.lsp.inline_completion.is_enabled()
@@ -199,8 +200,26 @@ map("n", "<leader>dt", function() require("dap").terminate() end,               
 -- rustaceanvim picks the right cargo target/test to debug
 map("n", "<leader>dR", function() vim.cmd.RustLsp("debuggables") end,                       { desc = "Rust debuggables" })
 
+-- rust-analyzer's flycheck keeps cargo's raw output to itself (LSP only gets the
+-- parsed diagnostics), so show the compile log by re-running the same command in
+-- a terminal split. Same flags + same target dir as rust-analyzer (ide.lua), so
+-- cargo finds the artifacts fresh and just replays the cached output: instant
+-- after a save, no rebuild. `q` closes the split once the command is done.
+local function cargo_log()
+  local client = vim.lsp.get_clients({ bufnr = 0, name = "rust-analyzer" })[1]
+  local root = client and client.root_dir or vim.fs.root(0, { "Cargo.lock", "Cargo.toml" })
+  if not root then return vim.notify("No cargo workspace found", vim.log.levels.WARN) end
+  vim.cmd("botright 15split")
+  vim.cmd.enew()
+  vim.fn.jobstart({ "cargo", "clippy", "--workspace", "--all-targets", "--target-dir", "target/analyzer" },
+    { cwd = root, term = true })
+  vim.bo.buflisted = false
+  map("n", "q", "<cmd>bwipeout!<cr>", { buffer = true, desc = "Close compile log" })
+end
+
 -- rustaceanvim under <leader>c (+code), buffer-local so it only exists in rust files.
 -- Free letters only: cf (format), cd (line diagnostics) and cw (trim) are taken globally.
+-- Rename is the native grn, not duplicated here.
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("theo_rust_keymaps", { clear = true }),
   pattern = "rust",
@@ -218,6 +237,29 @@ vim.api.nvim_create_autocmd("FileType", {
     rmap("<leader>co", "openDocs",         "Rust: open docs.rs for symbol")
     rmap("<leader>cj", "joinLines",        "Rust: join lines")
     rmap("<leader>ca", "codeAction",       "Rust: code action (grouped)")
+    rmap("<leader>cL", "logFile",          "Rust: rust-analyzer server log")
+    map("n", "<leader>cl", cargo_log, { buffer = ev.buf, desc = "Rust: compile log (cargo clippy)" })
+  end,
+})
+
+-- render-markdown (setup/editor.lua) under <leader>c, buffer-local like the rust
+-- maps above, so <leader>cm doesn't clash with Rust's expand macro. Rendering is
+-- on by default in normal mode; toggle it to see the raw text.
+-- <leader>cM toggles the live-preview.nvim browser tab (setup/editor.lua).
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("theo_markdown_keymaps", { clear = true }),
+  pattern = "markdown",
+  callback = function(ev)
+    map("n", "<leader>cm", "<cmd>RenderMarkdown buf_toggle<cr>", { buffer = ev.buf, desc = "Markdown: toggle rendering" })
+    map("n", "<leader>cM", function()
+      local lp = require("livepreview")
+      if lp.is_running() then
+        lp.close()
+        vim.notify("Markdown preview stopped")
+      else
+        vim.cmd("LivePreview start")
+      end
+    end, { buffer = ev.buf, desc = "Markdown: browser preview (toggle)" })
   end,
 })
 
@@ -259,7 +301,10 @@ end, { desc = "Yank path:lines" })
 -- mini.sessions, <leader>S = +session
 map("n", "<leader>Sl", function() MiniSessions.select() end, { desc = "Load session" })
 map("n", "<leader>Sd", function() MiniSessions.select("delete") end, { desc = "Delete session" })
-map("n", "<leader>Sr", function() MiniSessions.read() end, { desc = "Restore latest session" })
+map("n", "<leader>Sr", function()
+  local name = vim.fn.fnamemodify(vim.uv.cwd(), ":t")
+  if MiniSessions.detected[name] then MiniSessions.read(name) else MiniSessions.read() end
+end, { desc = "Restore project session (else latest)" })
 map("n", "<leader>Ss", function()
   vim.ui.input({ prompt = "Session name: ", default = vim.fn.fnamemodify(vim.uv.cwd(), ":t") }, function(name)
     if name and name ~= "" then MiniSessions.write(name) end

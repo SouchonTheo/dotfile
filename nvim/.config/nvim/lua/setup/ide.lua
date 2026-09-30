@@ -1,4 +1,4 @@
--- IMPORTANT: this file must be required BEFORE lua/lsp.lua, because
+-- IMPORTANT: this file must be required BEFORE lua/lsp/, because
 -- codesettings registers a global vim.lsp.config("*", before_init=...) hook
 -- that needs to be in place before per-server configs are declared.
 
@@ -16,25 +16,12 @@ vim.lsp.config("*", {
   end,
 })
 
--- rustaceanvim configures itself via vim.g (don't call setup())
+-- rustaceanvim configures itself via vim.g (don't call setup()).
+-- rust-analyzer settings live in lsp/rust-analyzer.lua with the other servers.
 vim.g.rustaceanvim = {
-  server = {
-    default_settings = {
-      ["rust-analyzer"] = {
-        cargo = {
-          allFeatures = false,
-          targetDir = "target/analyzer",
-          -- keep build scripts ON: disabling them makes rust-analyzer report
-          -- phantom errors in any crate that generates code from build.rs
-          -- (prost, tonic, bindgen). Costs one build up front, saves false positives.
-          buildScripts = { enable = true },
-        },
-        -- lint with clippy on save instead of plain `cargo check`
-        checkOnSave = true,
-        check = { command = "clippy" },
-      },
-    },
-  },
+  -- :RustLsp testables (<leader>ct) runs through neotest: summary + output
+  -- panels instead of a raw terminal. cargo-nextest is picked up automatically.
+  tools = { test_executor = "neotest" },
 }
 
 -- crates.nvim runs an in-process LSP on Cargo.toml buffers: blink completes

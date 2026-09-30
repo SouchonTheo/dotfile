@@ -13,15 +13,14 @@ vim.pack.add({
   { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
   { src = "https://github.com/nvim-treesitter/nvim-treesitter-context" }, -- sticky scope header
 
-  -- mini.* (one repo each, lighter than the monorepo)
+  -- mini.* (one repo each, lighter than the monorepo).
+  -- No mini.comment: gc/gcc are native since 0.10 and treesitter-aware.
   { src = "https://github.com/echasnovski/mini.ai" },
-  { src = "https://github.com/echasnovski/mini.comment" },
   { src = "https://github.com/echasnovski/mini.surround" },
   { src = "https://github.com/echasnovski/mini.move" },
   { src = "https://github.com/echasnovski/mini.pairs" },
   { src = "https://github.com/echasnovski/mini.hipatterns" },
   { src = "https://github.com/echasnovski/mini.icons" },
-  { src = "https://github.com/echasnovski/mini.animate" },
   { src = "https://github.com/echasnovski/mini.indentscope" },
   { src = "https://github.com/echasnovski/mini.pick" },
   { src = "https://github.com/echasnovski/mini.files" },
@@ -31,7 +30,6 @@ vim.pack.add({
   { src = "https://github.com/echasnovski/mini.statusline" },
   { src = "https://github.com/echasnovski/mini.bufremove" },
   { src = "https://github.com/echasnovski/mini.starter" },
-  { src = "https://github.com/echasnovski/mini.snippets" },
   { src = "https://github.com/echasnovski/mini.bracketed" },
   { src = "https://github.com/echasnovski/mini.splitjoin" },
   { src = "https://github.com/echasnovski/mini.operators" },
@@ -42,20 +40,19 @@ vim.pack.add({
   { src = "https://github.com/echasnovski/mini.sessions" },   -- project sessions (<leader>S)
   { src = "https://github.com/echasnovski/mini.visits" },     -- frecency file history + labels (<leader>v)
   { src = "https://github.com/echasnovski/mini.diff" },       -- git hunks: signs, overlay, apply/reset
-
-  -- snippet collection (consumed by mini.snippets)
-  { src = "https://github.com/rafamadriz/friendly-snippets" },
+  -- repo is "mini-git" (GitHub reserves the .git suffix), module is still require("mini.git")
+  { src = "https://github.com/echasnovski/mini-git" },        -- :Git, line history / blame (<leader>gb), statusline head
 
   -- editor
-  { src = "https://github.com/lewis6991/gitsigns.nvim" },
   { src = "https://github.com/folke/todo-comments.nvim" },
   { src = "https://github.com/MagicDuck/grug-far.nvim" },
   { src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
+  { src = "https://github.com/brianhuster/live-preview.nvim" }, -- markdown in the browser (pure Lua server)
   { src = "https://github.com/folke/flash.nvim" },          -- label-jump motion
-  { src = "https://github.com/tris203/precognition.nvim" }, -- motion hints
 
   -- completion. Copilot is not a plugin anymore: nvim 0.12 native
-  -- vim.lsp.inline_completion + copilot-language-server, configured in lsp.lua.
+  -- vim.lsp.inline_completion + copilot-language-server, configured in lsp/copilot.lua.
+  -- Snippets: native vim.snippet (LSP snippets from rust-analyzer), no plugin.
   { src = "https://github.com/Saghen/blink.lib" },
   { src = "https://github.com/Saghen/blink.cmp" },
 

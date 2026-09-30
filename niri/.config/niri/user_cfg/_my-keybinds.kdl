@@ -16,7 +16,8 @@ binds {
 
     Mod+B hotkey-overlay-title="Open Browser: Helium" { spawn "helium-browser"; }
     Mod+Shift+C hotkey-overlay-title="Open Claude" { spawn "helium-browser" "--app=https://claude.ai" "--class=claude"; }
-    Mod+Shift+S hotkey-overlay-title="Open Slack" { spawn "helium-browser" "--app=https://app.slack.com/client" "--class=slack"; }
+    // native Slack (AUR slack-desktop); ELECTRON_OZONE_PLATFORM_HINT=auto in cfg/misc.kdl makes it run on Wayland
+    Mod+Shift+S hotkey-overlay-title="Open Slack" { spawn "slack"; }
 
     // vanilla = fullscreen-window
     Mod+F                               { maximize-column; }
