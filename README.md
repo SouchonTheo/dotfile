@@ -65,9 +65,6 @@ presets. But noctalia's `binds{}` block sits *after* the includes, so it wins
 over mine: `Mod+Space` and `XF86PowerOff` are declared in both places and it is
 noctalia's version that is live.
 
-`user_cfg/_my-display.kdl` is entirely commented out and duplicates what
-`monitor.kdl` does. It stays only because `config.kdl` includes it by name.
-
 ## What each package expects on the system
 
 System packages are not managed here, but the configs assume a few binaries.

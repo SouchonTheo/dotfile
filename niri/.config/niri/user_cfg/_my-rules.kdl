@@ -1,21 +1,18 @@
-// Extra window-rules. Each window-rule{} block is one rule and they ADD to
-// those in cfg/rules.kdl, so the vanilla ones don't need redefining.
+// Added on top of cfg/rules.kdl (window rules stack, no need to repeat vanilla ones).
 
-// inactive windows semi-transparent to highlight focus.
-// Off: everything fully opaque. Uncomment to bring it back.
+// dim inactive windows
 // window-rule {
 //     match is-active=false
 //     opacity 0.85
 // }
 
-// Picture-in-Picture: small floating window pinned to the bottom-right corner,
-// never steals focus. Case-insensitive: Helium says "Picture in picture",
-// Firefox "Picture-in-Picture", a French UI "Image dans l'image".
+// Picture-in-Picture: small, floating, bottom-right, never steals focus.
+// Title differs per browser/locale, hence the case-insensitive alternation.
 window-rule {
     match title=r#"(?i)^(picture[- ]in[- ]picture|image dans l'image)$"#
     open-floating true
     open-focused false
-    // on-xdg-activate "set-urgent"  // stops the page re-raising the PiP; needs a newer niri than installed
+    // on-xdg-activate "set-urgent"  // stop pages re-raising it, needs a newer niri
     default-floating-position x=24 y=24 relative-to="bottom-right"
     default-column-width { fixed 480; }
     default-window-height { fixed 270; }

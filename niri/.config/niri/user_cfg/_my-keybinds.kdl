@@ -1,43 +1,50 @@
-// Overrides and additions on top of cfg/keybinds.kdl.
-// Must be included AFTER it in config.kdl: last declaration wins.
-//
-// niri has no unbind syntax, so the vanilla combos I replaced below
-// (Mod+ALT+L, Mod+CTRL+Return, Mod+Shift+ESCAPE, Mod+CTRL+1..9,
-// CTRL+Shift+1/2/3) stay active in parallel. Killing them means editing
-// cfg/keybinds.kdl directly, which loses the pristine state.
-//
-// Noctalia v5: IPC is `noctalia msg …` (v4 was `qs -c noctalia-shell ipc call …`).
+// Overrides + additions on top of cfg/keybinds.kdl (included after it: last one wins).
+// niri has no unbind, so the vanilla combos replaced here stay active too.
 
 binds {
 
-    // 1. same key, action changed
-
+    // ─── Apps ───
     Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
+    Mod+B                               hotkey-overlay-title="Open Browser: Helium" { spawn "helium-browser"; }
+    Mod+Shift+C                         hotkey-overlay-title="Open Claude" { spawn "helium-browser" "--app=https://claude.ai" "--class=claude"; }
+    Mod+Shift+S                         hotkey-overlay-title="Open Slack" { spawn "slack"; }
+    Mod+A                               hotkey-overlay-title="Open AI: claude" { spawn "gtk-launch" "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default"; }
 
-    Mod+B hotkey-overlay-title="Open Browser: Helium" { spawn "helium-browser"; }
-    Mod+Shift+C hotkey-overlay-title="Open Claude" { spawn "helium-browser" "--app=https://claude.ai" "--class=claude"; }
-    // native Slack (AUR slack-desktop); ELECTRON_OZONE_PLATFORM_HINT=auto in cfg/misc.kdl makes it run on Wayland
-    Mod+Shift+S hotkey-overlay-title="Open Slack" { spawn "slack"; }
-
-    // vanilla = fullscreen-window
-    Mod+F                               { maximize-column; }
-
-    // vanilla = center-column, which I sacrificed.
-    // Mod+CTRL+C still does center-visible-columns.
-    Mod+C                               hotkey-overlay-title="Copy (Ctrl+C)" { spawn-sh "wtype -M ctrl -k Insert -m ctrl"; }
-
-    // 2. same action, key combo changed
-
-    // was Mod+Shift+ESCAPE
-    Mod+Shift+K                         { show-hotkey-overlay; }
-
-    // was Mod+CTRL+Return
+    // ─── Noctalia ───
     Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
+    Mod+Shift+E                         hotkey-overlay-title="Spawn Emoji Picker: noctalia emoji" { spawn-sh "noctalia msg panel-toggle launcher '/emo'"; }
+    Mod+Shift+V                         hotkey-overlay-title="Clipboard manager: noctalia" { spawn-sh "noctalia msg panel-toggle clipboard"; }
+    Alt+Tab                             hotkey-overlay-title="Window switcher: noctalia" { spawn-sh "noctalia msg window-switcher"; }
+    // needs HandlePowerKey=ignore in logind + disable-power-key-handling (_my-input.kdl)
+    XF86PowerOff                        allow-when-locked=true { spawn-sh "noctalia msg panel-toggle session"; }
 
-    // was Mod+ALT+L
-    Mod+Shift+L                         hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "noctalia msg session lock"; }
+    // ─── Clipboard (Mod+C replaces vanilla center-column) ───
+    Mod+C                               hotkey-overlay-title="Copy (Ctrl+C)" { spawn-sh "wtype -M ctrl -k Insert -m ctrl"; }
+    Mod+V                               hotkey-overlay-title="Paste (Shift+Insert)" { spawn-sh "wtype -M shift -k Insert -m shift"; }
+    Mod+X                               hotkey-overlay-title="Cut (Ctrl+X)" { spawn-sh "wtype -M ctrl -k x -m ctrl"; }
 
-    // was Mod+CTRL+1..9
+    // ─── Screenshots (region/screen through noctalia's editor) ───
+    Print                               hotkey-overlay-title="Screenshot region: noctalia" { spawn-sh "noctalia msg screenshot-region"; }
+    Shift+Print                         hotkey-overlay-title="Screenshot screen: noctalia" { spawn-sh "noctalia msg screenshot-fullscreen"; }
+    CTRL+Print                          { screenshot-window; }
+
+    // ─── Layout ───
+    Mod+F                               { maximize-column; }
+    Mod+R                               { switch-preset-column-width; }
+    Mod+Shift+R                         { switch-preset-window-height; }
+    Mod+Ctrl+R                          { reset-window-height; }
+
+    // ─── Monitors (vim keys, same as the Mod+Shift(+CTRL)+arrow vanilla ones) ───
+    Mod+Shift+H                         { focus-monitor-left; }
+    Mod+Shift+J                         { focus-monitor-down; }
+    Mod+Shift+K                         { focus-monitor-up; }
+    Mod+Shift+L                         { focus-monitor-right; }
+    Mod+Shift+CTRL+H                    { move-column-to-monitor-left; }
+    Mod+Shift+CTRL+J                    { move-column-to-monitor-down; }
+    Mod+Shift+CTRL+K                    { move-column-to-monitor-up; }
+    Mod+Shift+CTRL+L                    { move-column-to-monitor-right; }
+
+    // ─── Workspaces ───
     Mod+Shift+1                         { move-column-to-workspace 1; }
     Mod+Shift+2                         { move-column-to-workspace 2; }
     Mod+Shift+3                         { move-column-to-workspace 3; }
@@ -47,44 +54,4 @@ binds {
     Mod+Shift+7                         { move-column-to-workspace 7; }
     Mod+Shift+8                         { move-column-to-workspace 8; }
     Mod+Shift+9                         { move-column-to-workspace 9; }
-
-    // was CTRL+Shift+1/2/3. Region + full screen go through noctalia (annotation
-    // editor, copy + save, see [shell.screenshot]); niri keeps the window capture.
-    Print                               hotkey-overlay-title="Screenshot region: noctalia" { spawn-sh "noctalia msg screenshot-region"; }
-    Shift+Print                         hotkey-overlay-title="Screenshot screen: noctalia" { spawn-sh "noctalia msg screenshot-fullscreen"; }
-    CTRL+Print                          { screenshot-window; }
-
-    // 3. new bindings, no vanilla equivalent
-
-    Mod+A                               hotkey-overlay-title="Open AI: claude" { spawn "gtk-launch" "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default"; }
-    // built-in emoji provider of the v5 launcher (the v4 kaomoji plugin is gone)
-    Mod+Shift+E                         hotkey-overlay-title="Spawn Emoji Picker: noctalia emoji" { spawn-sh "noctalia msg panel-toggle launcher '/emo'"; }
-
-    Mod+V                               hotkey-overlay-title="Paste (Shift+Insert)" { spawn-sh "wtype -M shift -k Insert -m shift"; }
-    Mod+X                               hotkey-overlay-title="Cut (Ctrl+X)" { spawn-sh "wtype -M ctrl -k x -m ctrl"; }
-    Mod+Shift+V                         hotkey-overlay-title="Clipboard manager: noctalia" { spawn-sh "noctalia msg panel-toggle clipboard"; }
-
-    Mod+R                               { switch-preset-column-width; }
-    Mod+Shift+R                         { switch-preset-window-height; }
-    Mod+Ctrl+R                          { reset-window-height; }
-
-    Alt+Tab                             hotkey-overlay-title="Window switcher: noctalia" { spawn-sh "noctalia msg window-switcher"; }
-
-    // requires HandlePowerKey=ignore in logind
-    XF86PowerOff                        allow-when-locked=true { spawn-sh "noctalia msg panel-toggle session"; }
-
-    // vim-motion monitor moves (mirrors Mod+Shift+CTRL+arrow in cfg/keybinds.kdl)
-    Mod+Shift+CTRL+H                    { move-column-to-monitor-left; }
-    Mod+Shift+CTRL+L                    { move-column-to-monitor-right; }
-    Mod+Shift+CTRL+K                    { move-column-to-monitor-up; }
-    Mod+Shift+CTRL+J                    { move-column-to-monitor-down; }
-
-    // vim-motion monitor focus, left/down only: Mod+Shift+K and Mod+Shift+L are
-    // taken by the hotkey overlay and the lock screen above. The work machine
-    // used to have all four (H/J/K/L → focus-monitor-*); pick one design and
-    // uncomment/remove accordingly.
-    Mod+Shift+H                         { focus-monitor-left; }
-    Mod+Shift+J                         { focus-monitor-down; }
-    // Mod+Shift+K                      { focus-monitor-up; }
-    // Mod+Shift+L                      { focus-monitor-right; }
 }

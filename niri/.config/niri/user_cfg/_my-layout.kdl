@@ -1,17 +1,13 @@
-// Override of the vanilla layout{} block. Only real change: gaps 16 -> 8.
+// Replaces cfg/layout.kdl, only change: gaps 16 -> 8.
 
 layout {
     gaps 8
-
     center-focused-column "never"
-
-    background-color "transparent" // required by noctalia-shell for the wallpaper
-
+    background-color "transparent" // noctalia draws the wallpaper behind
     preset-column-widths {
         proportion 0.33333
         proportion 0.5
         proportion 0.66667
     }
-
     struts {}
 }
