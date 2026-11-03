@@ -9,6 +9,7 @@ local copilot_bin = (function()
   local pnpm = vim.env.PNPM_HOME or vim.fn.expand("~/.local/share/pnpm")
   local candidates = {
     vim.fn.expand("~/.local/bin/copilot-language-server"),
+    pnpm .. "/bin/copilot-language-server", -- pnpm >= 11
     pnpm .. "/copilot-language-server",
     vim.fn.expand("~/.npm-global/bin/copilot-language-server"),
     "/usr/local/bin/copilot-language-server",

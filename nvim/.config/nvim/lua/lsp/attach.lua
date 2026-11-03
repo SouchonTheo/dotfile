@@ -17,7 +17,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     -- mini.cursorword steps aside in these buffers.
     if client and client:supports_method("textDocument/documentHighlight") then
       vim.b[ev.buf].minicursorword_disable = true
-      local group = vim.api.nvim_create_augroup("theo_lsp_highlight_" .. ev.buf, { clear = true })
+      local group = vim.api.nvim_create_augroup("user_lsp_highlight_" .. ev.buf, { clear = true })
       vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
         group = group, buffer = ev.buf, callback = vim.lsp.buf.document_highlight,
       })
@@ -29,7 +29,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         callback = function()
           vim.lsp.buf.clear_references()
           vim.b[ev.buf].minicursorword_disable = nil
-          pcall(vim.api.nvim_del_augroup_by_name, "theo_lsp_highlight_" .. ev.buf)
+          pcall(vim.api.nvim_del_augroup_by_name, "user_lsp_highlight_" .. ev.buf)
         end,
       })
     end

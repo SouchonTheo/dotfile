@@ -11,13 +11,14 @@ end
 
 -- enable each server only if its binary is installed
 local servers = { "clangd", "zls", "lua_ls", "taplo", "ts_ls", "jsonls", "yamlls", "bashls", "marksman", "copilot" }
+local missing = {} ---@type table<string, { bin: string, filetypes: string[] }>
 for _, name in ipairs(servers) do
   local cfg = vim.lsp.config[name]
   local bin = cfg and cfg.cmd and cfg.cmd[1]
   if bin and vim.fn.executable(bin) == 1 then
     vim.lsp.enable(name)
   elseif name == "copilot" then
-    -- the others are optional per-language servers; Copilot missing is worth a heads-up
+    -- Copilot covers every filetype: warn at startup
     vim.schedule(function()
       vim.notify(
         "Copilot: `copilot-language-server` not in PATH, ghost text disabled.\n"
@@ -25,7 +26,23 @@ for _, name in ipairs(servers) do
         vim.log.levels.WARN
       )
     end)
+  elseif bin then
+    missing[name] = { bin = bin, filetypes = cfg.filetypes or {} }
   end
 end
+
+-- per-language servers: warn only when a file of that language is opened,
+-- once per server and session (no noise for languages never touched here)
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("user_lsp_missing", { clear = true }),
+  callback = function(ev)
+    for name, info in pairs(missing) do
+      if vim.tbl_contains(info.filetypes, ev.match) then
+        missing[name] = nil
+        vim.notify(("LSP %s: `%s` not in PATH, no LSP for %s files"):format(name, info.bin, ev.match), vim.log.levels.WARN)
+      end
+    end
+  end,
+})
 
 require("lsp.attach")

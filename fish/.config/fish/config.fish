@@ -22,6 +22,10 @@ set -gx PNPM_HOME "/home/theo/.local/share/pnpm"
 if not string match -q -- $PNPM_HOME $PATH
   set -gx PATH "$PNPM_HOME" $PATH
 end
+# pnpm >= 11 puts global bins in $PNPM_HOME/bin; the line above keeps the v10 shims
+if not string match -q -- $PNPM_HOME/bin $PATH
+  set -gx PATH "$PNPM_HOME/bin" $PATH
+end
 # pnpm end
 
 # ZVM

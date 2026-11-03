@@ -1,5 +1,5 @@
 local function augroup(name)
-  return vim.api.nvim_create_augroup("theo_" .. name, { clear = true })
+  return vim.api.nvim_create_augroup("user_" .. name, { clear = true })
 end
 
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -17,6 +17,17 @@ vim.api.nvim_create_autocmd({ "FocusGained", "TermClose", "TermLeave", "BufEnter
     if vim.o.buftype ~= "nofile" and vim.fn.mode() ~= "c" then
       vim.cmd.checktime()
     end
+  end,
+})
+
+-- terminal resized (niri column width preset, maximize): rebalance the splits
+-- in every tab instead of leaving them squashed at their old proportions
+vim.api.nvim_create_autocmd("VimResized", {
+  group = augroup("resize_splits"),
+  callback = function()
+    local current = vim.fn.tabpagenr()
+    vim.cmd("tabdo wincmd =")
+    vim.cmd("tabnext " .. current)
   end,
 })
 

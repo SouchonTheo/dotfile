@@ -86,7 +86,7 @@ require("mini.pick").setup({
 -- so feeding its toggle_preview key (<Tab>) right at start does the job.
 -- <Tab> again hides it for the current picker.
 vim.api.nvim_create_autocmd("User", {
-  group = vim.api.nvim_create_augroup("theo_pick_preview", { clear = true }),
+  group = vim.api.nvim_create_augroup("user_pick_preview", { clear = true }),
   pattern = "MiniPickStart",
   callback = function() vim.api.nvim_feedkeys(vim.keycode("<Tab>"), "t", false) end,
 })
@@ -135,7 +135,7 @@ local function make_tabline_diag_hl()
 end
 make_tabline_diag_hl()
 
-function _G.theo_tabline()
+function _G.user_tabline()
   local s = MiniTabline.make_tabline_string()
   local out, pos = {}, 1
   while true do
@@ -151,9 +151,9 @@ function _G.theo_tabline()
   end
   return table.concat(out)
 end
-vim.o.tabline = "%!v:lua.theo_tabline()"
+vim.o.tabline = "%!v:lua.user_tabline()"
 
-local tabline_diag = vim.api.nvim_create_augroup("theo_tabline_diag", { clear = true })
+local tabline_diag = vim.api.nvim_create_augroup("user_tabline_diag", { clear = true })
 -- the tabline only redraws on its own events, diagnostics arriving is not one of them
 vim.api.nvim_create_autocmd("DiagnosticChanged", { group = tabline_diag, callback = function() vim.cmd.redrawtabline() end })
 -- registered after mini.tabline's own ColorScheme hook, so its groups are already refreshed
@@ -207,7 +207,7 @@ require("mini.sessions").setup({
 -- least one real file open writes the project session if none is active yet
 -- (autowrite already covers the case where one was restored or saved by hand).
 vim.api.nvim_create_autocmd("VimLeavePre", {
-  group = vim.api.nvim_create_augroup("theo_session_autosave", { clear = true }),
+  group = vim.api.nvim_create_augroup("user_session_autosave", { clear = true }),
   callback = function()
     if vim.v.this_session ~= "" then return end
     if vim.fn.isdirectory(vim.uv.cwd() .. "/.git") == 0 then return end
