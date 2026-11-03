@@ -15,8 +15,22 @@ for _, k in ipairs({ "<Up>", "<Down>", "<Left>", "<Right>" }) do
 end
 
 -- mini.pick
-map("n", "<leader><space>", "<cmd>Pick files<cr>",       { desc = "Find files" })
-map("n", "<leader>ff",      "<cmd>Pick files<cr>",       { desc = "Find files" })
+-- `Pick files` can't pass --hidden to rg, so build it with the cli picker.
+-- Dotfiles are listed; .gitignore is still respected and .git/ is skipped.
+local function find_files()
+  MiniPick.builtin.cli({
+    command = { "rg", "--files", "--hidden", "--color=never", "--glob", "!.git/" },
+  }, {
+    source = {
+      name = "Files (hidden)",
+      show = function(buf_id, items, query)
+        MiniPick.default_show(buf_id, items, query, { show_icons = true })
+      end,
+    },
+  })
+end
+map("n", "<leader><space>", find_files,                  { desc = "Find files" })
+map("n", "<leader>ff",      find_files,                  { desc = "Find files" })
 map("n", "<leader>fg",      "<cmd>Pick git_files<cr>",   { desc = "Git files" })
 map("n", "<leader>fb",      "<cmd>Pick buffers<cr>",     { desc = "Buffers" })
 map("n", "<leader>fr",      "<cmd>Pick oldfiles<cr>",    { desc = "Recent files" })

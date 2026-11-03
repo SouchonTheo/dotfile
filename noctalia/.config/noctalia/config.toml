@@ -105,7 +105,7 @@ enabled = false
 # ── Thème ────────────────────────────────────────────────────────────────────
 
 [theme]
-mode    = "auto"                                        # jour/nuit selon lever/coucher du soleil ([location])
+mode    = "dark"                                        # "auto" = jour/nuit selon lever/coucher du soleil ([location])
 source  = "builtin"                                     # v4 useWallpaperColors = false
 builtin = "Catppuccin"                                  # v4 predefinedScheme
 
