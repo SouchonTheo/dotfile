@@ -29,6 +29,7 @@ o.undofile = true
 o.ignorecase = true
 o.smartcase = true
 o.hlsearch = true -- <Esc> clears it (keymaps.lua)
+o.inccommand = "split" -- :s previews live, off-screen matches listed in a split
 o.scrolloff = 8
 o.updatetime = 200
 o.timeoutlen = 400

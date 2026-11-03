@@ -12,9 +12,18 @@ require("nvim-treesitter").install(parsers)
 -- highlight + indentation from the parser when one is installed for the filetype.
 -- indentexpr is the piece smartindent can't do well in Rust (match arms, chained
 -- method calls, closing braces of nested blocks).
+-- Skipped above 1 MB (minified JSON, lockfiles, logs): parsing those freezes
+-- the UI, and they get plain vim syntax instead.
+local max_filesize = 1024 * 1024
 vim.api.nvim_create_autocmd("FileType", {
-  group = vim.api.nvim_create_augroup("theo_treesitter", { clear = true }),
+  group = vim.api.nvim_create_augroup("user_treesitter", { clear = true }),
   callback = function(args)
+    local ok, stat = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(args.buf))
+    if ok and stat and stat.size > max_filesize then
+      -- the treesitter foldexpr (options.lua) would parse the file anyway
+      vim.opt_local.foldmethod = "manual"
+      return
+    end
     local ft = args.match
     local lang = vim.treesitter.language.get_lang(ft) or ft
     if vim.treesitter.language.add(lang) then

@@ -41,6 +41,11 @@ map("n", "<leader>fD", function()
   MiniExtra.pickers.diagnostic({ get_opts = { severity = vim.diagnostic.severity.ERROR } })
 end, { desc = "Errors only (workspace)" })
 
+-- live: the query goes to the server on each keystroke (rust-analyzer returns
+-- nothing useful for an empty query on a big workspace)
+map("n", "<leader>fs", function() MiniExtra.pickers.lsp({ scope = "workspace_symbol_live" }) end,
+  { desc = "Symbols (workspace, LSP)" })
+
 map("n", "<leader>sg", "<cmd>Pick grep_live<cr>", { desc = "Grep project" })
 map("n", "<leader>sw", function() MiniPick.builtin.grep({ pattern = vim.fn.expand("<cword>") }) end,
   { desc = "Grep word under cursor" })
@@ -216,7 +221,7 @@ map("n", "<leader>dR", function() vim.cmd.RustLsp("debuggables") end,           
 
 -- rust-analyzer's flycheck keeps cargo's raw output to itself (LSP only gets the
 -- parsed diagnostics), so show the compile log by re-running the same command in
--- a terminal split. Same flags + same target dir as rust-analyzer (ide.lua), so
+-- a terminal split. Same flags + same target dir as rust-analyzer (lsp/rust-analyzer.lua), so
 -- cargo finds the artifacts fresh and just replays the cached output: instant
 -- after a save, no rebuild. `q` closes the split once the command is done.
 local function cargo_log()
@@ -235,7 +240,7 @@ end
 -- Free letters only: cf (format), cd (line diagnostics) and cw (trim) are taken globally.
 -- Rename is the native grn, not duplicated here.
 vim.api.nvim_create_autocmd("FileType", {
-  group = vim.api.nvim_create_augroup("theo_rust_keymaps", { clear = true }),
+  group = vim.api.nvim_create_augroup("user_rust_keymaps", { clear = true }),
   pattern = "rust",
   callback = function(ev)
     local rmap = function(lhs, cmd, desc)
@@ -261,7 +266,7 @@ vim.api.nvim_create_autocmd("FileType", {
 -- on by default in normal mode; toggle it to see the raw text.
 -- <leader>cM toggles the live-preview.nvim browser tab (setup/editor.lua).
 vim.api.nvim_create_autocmd("FileType", {
-  group = vim.api.nvim_create_augroup("theo_markdown_keymaps", { clear = true }),
+  group = vim.api.nvim_create_augroup("user_markdown_keymaps", { clear = true }),
   pattern = "markdown",
   callback = function(ev)
     map("n", "<leader>cm", "<cmd>RenderMarkdown buf_toggle<cr>", { buffer = ev.buf, desc = "Markdown: toggle rendering" })
