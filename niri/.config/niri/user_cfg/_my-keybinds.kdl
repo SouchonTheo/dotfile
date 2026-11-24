@@ -5,8 +5,8 @@ binds {
 
     // ─── Apps ───
     Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
-    Mod+B                               hotkey-overlay-title="Open Browser: Helium" { spawn "helium-browser"; }
-    Mod+Shift+C                         hotkey-overlay-title="Open Claude" { spawn "helium-browser" "--app=https://claude.ai" "--class=claude"; }
+    Mod+B                               hotkey-overlay-title="Open Browser: Vivaldi" { spawn "vivaldi"; }
+    Mod+Shift+C                         hotkey-overlay-title="Open Claude" { spawn "vivaldi" "--app=https://claude.ai" "--class=claude"; }
     Mod+Shift+S                         hotkey-overlay-title="Open Slack" { spawn "slack"; }
     Mod+A                               hotkey-overlay-title="Open AI: claude" { spawn "gtk-launch" "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default"; }
 
